@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+.login .curved {
+	border-radius: 25px;
+}
+.custom-radio .custom-control-label::before {
+	right: auto;
+	top: 0rem;
+	left: -1.5rem;
+}
+.filter-box {
+	min-height: 18px !important;
+	min-width: 18px !important;
+}
+.custom-radio .custom-control-label::after {
+	top: 0rem;
+	left: -1.5rem;
+}
+.br-5 {
+	border-radius: 5px;
+}
+select {
+	background-position-y: 5px !important;
+}
+​​​​​​​​.cursor-pointer {
+	cursor: pointer !important;
+}
+a[href^="http://maps.google.com/maps"]
+{
+	display: none !important;
+}
+a[href^="https://maps.google.com/maps"]
+{
+	display: none !important;
+}
+
+.gmnoprint a,
+.gmnoprint span,
+.gm-style-cc {
+	display: none;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+.t-none {
+	text-decoration: none;
+}
+
+@media screen and (max-width: 768px) {
+	body {
+		font-size: 12px !important;
+	}
+}
+
+.spinner {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-left: -50px;
+	margin-top: -50px;
+	background-size: 100%;
+}
+
+.align-center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.react-select {
+	width: inherit;
+}
+
+.bookTest-testFilter {
+	max-height: 190px;
+	overflow-y: auto;
+}
+.dropdown-select .select {
+	height: 35px !important;
+	padding: 10px 35px 11px 20px !important;
+}
+.dropdown-select .select:after {
+	top: 16px !important;
+}
+.dropdown-select .option-list {
+	top: 35px !important;
+}
+.fa-bell {
+	font-size: 15px !important;
+}
+.form-search {
+	height: 35px !important;
+}
+input::-ms-reveal,
+input::-ms-clear {
+	display: none;
+}
+.fs-13 {
+	font-size: 13px !important;
+}
+.fs-12 label {
+	font-size: 12px !important;
+}
+.fs-13 label {
+	font-size: 13px !important;
+}
+.fs-13 h6 {
+	font-size: 13px !important;
+}
+.fs-13 li {
+	font-size: 13px !important;
+}
+.modal-title {
+	width: 100% !important;
+}
+.input-group-prepend .btn,
+.input-group-append .btn {
+	z-index: 0 !important;
+}
+.disabled {
+	pointer-events: none !important;
+}
+.box_sec {
+	max-width: 332px !important;
+}
+@media screen and (max-width: 768px) {
+	.text-truncate {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: normal !important;
+	}
+}
+
+ .closeIcon {
+    float: right;
+    margin-top: 10px;
+    right: 78px;
+    position: absolute;
+    z-index: 1;
+    color: red;
+	cursor: pointer
+}
+
+.react-select{
+	z-index: 9999;
+}
