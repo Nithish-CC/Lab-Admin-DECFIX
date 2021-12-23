@@ -34,16 +34,16 @@ const ViewModal = props => {
 	const [testList, setTestList] = useState(testListData)
 	const [inputValue, setValue] = useState('a')
 	const [selectedValue, setSelectedValue] = useState([])
+	const [totalValues,settotalValues] = useState(0)
+	// useEffect(() => {
+	// 	setTestList(testListData)
+	// }, [testListData])
 
-	useEffect(() => {
-		setTestList(testListData)
-	}, [testListData])
-
-	useEffect(() => {
-		let convertValue = []
-		testList.filter(i => convertValue.push({ value: i, label: i.Service_Name }))
-		setTestCollection(convertValue)
-	}, [testList])
+	// useEffect(() => {
+	// 	let convertValue = []
+	// 	testList.filter(i => convertValue.push({ value: i, label: i.Service_Name }))
+	// 	setTestCollection(convertValue)
+	// }, [testList])
 
 	useEffect(() => {
 		const getTest = newValue => {
@@ -67,11 +67,30 @@ const ViewModal = props => {
 			alert('hii hii')
 			setBookDetail(props.bookingDetail)
 			setPhlebotomistList(props.phlebotomistList)
+			//To have intial selected test
 			setServiceDetail(props.bookingDetail.Service_Detail)
 			setPromoCode(props.bookingDetail.Promo_Code)
 			setSelectedValue(props.bookingDetail.Service_Detail)
 		}
 	}, [])
+
+
+	console.log(bookingDetail)
+
+	//Calculate Amount
+	useEffect(()=>{
+		let sum = 0;
+		selectedValue && selectedValue.length && selectedValue.forEach((values)=>{
+			values.Service_Amount ? sum += values.Service_Amount : sum +=values.Amount
+			settotalValues(sum)
+		})
+		if(promoCode){
+			selectedValue && selectedValue.length && selectedValue.forEach((values)=>{
+				values.Service_Amount ? sum += values.Service_Amount : sum +=values.Amount
+				settotalValues(sum)
+			})
+		}
+	},[selectedValue])
 
 	// Test Search handle input change event
 	const handleInputChange = value => {
@@ -257,7 +276,7 @@ const ViewModal = props => {
 													''
 												)}
 											</th>
-											<th>{bookingDetail.Due_Amount}</th>
+											<th>{totalValues}</th>
 										</tr>
 										<tr>
 											<th scope='row'>Amount Paid</th>
