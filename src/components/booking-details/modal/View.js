@@ -34,16 +34,16 @@ const ViewModal = props => {
 	const [testList, setTestList] = useState(testListData)
 	const [inputValue, setValue] = useState('a')
 	const [selectedValue, setSelectedValue] = useState([])
-	const [totalValues,settotalValues] = useState(0)
-	// useEffect(() => {
-	// 	setTestList(testListData)
-	// }, [testListData])
+	const [totalValues, settotalValues] = useState(0)
+	const [collectionCharges, setCollectionCharges] = useState({})
+	const [promocodeDetails,setPromoCodeDetails]=useState({Availed_Times: 0,
+		Coupon_Code: "",
+		Coupon_Desc: "",
+		Coupon_Heading: "",
+		Offer_Percentage: 0,
+		Offer_Times:0,
+		Validity_ToDate: ""});
 
-	// useEffect(() => {
-	// 	let convertValue = []
-	// 	testList.filter(i => convertValue.push({ value: i, label: i.Service_Name }))
-	// 	setTestCollection(convertValue)
-	// }, [testList])
 
 	useEffect(() => {
 		const getTest = newValue => {
@@ -64,6 +64,7 @@ const ViewModal = props => {
 		}
 		getTest('a')
 		if (Object.keys(props).length) {
+			console.log(props)
 			alert('hii hii')
 			setBookDetail(props.bookingDetail)
 			setPhlebotomistList(props.phlebotomistList)
@@ -71,40 +72,67 @@ const ViewModal = props => {
 			setServiceDetail(props.bookingDetail.Service_Detail)
 			setPromoCode(props.bookingDetail.Promo_Code)
 			setSelectedValue(props.bookingDetail.Service_Detail)
+			setPromoCodeDetails({'Promo_Code':props.bookingDetail.Promo_Code,'Promo_Heading':props.bookingDetail.Promo_Heading,'Promo_Percentage':props.bookingDetail.Promo_Percentage})
 		}
 	}, [])
 
-
-	console.log(bookingDetail)
+	//Sample Collection Charges
+	const sampleCollectionCharges = sum => {
+		props.getCollectionCharges(
+			{
+				Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
+				Bill_Amount: sum,
+				Pt_Code: bookingDetail.Pt_Code,
+			},
+			(success, data) => {
+				if (success) {
+					setCollectionCharges(data)
+					settotalValues(sum + data.Collection_Charge)
+				}
+			}
+		)
+	}
 
 	//Calculate Amount
-	useEffect(()=>{
-		let sum = 0;
-		selectedValue && selectedValue.length && selectedValue.forEach((values)=>{
-			values.Service_Amount ? sum += values.Service_Amount : sum +=values.Amount
-			settotalValues(sum)
-		})
-		if(promoCode){
-			selectedValue && selectedValue.length && selectedValue.forEach((values)=>{
-				values.Service_Amount ? sum += values.Service_Amount : sum +=values.Amount
-				settotalValues(sum)
-			})
+	useEffect(() => {
+		if (promoCode == '' || promoCode == null) {
+			let sum = 0
+			selectedValue &&
+				selectedValue.length &&
+				selectedValue.forEach(values => {
+					values.Service_Amount ? (sum += values.Service_Amount) : (sum += values.Amount)
+					settotalValues(sum)
+				})
+			return sampleCollectionCharges(sum)
+		} else {
+			let sum = 0
+			let discount = 0
+			selectedValue &&
+				selectedValue.length &&
+				selectedValue.forEach(values => {
+					values.Service_Amount ? (sum += values.Service_Amount) : (sum += values.Amount)
+					console.log(values)
+					values.Service_Discount ? (discount+= values.Service_Discount):(values.Suppress_Discount== false ? (discount+= values.Amount*10/100):((discount+= 0)))
+					console.log(discount)
+					settotalValues(sum)
+				})	
+			return sampleCollectionCharges(sum)
 		}
-	},[selectedValue])
+	}, [selectedValue, promoCode])
 
 	// Test Search handle input change event
 	const handleInputChange = value => {
-		console.log(value)
+		//console.log(value)
 		setValue(value)
 	}
 
 	// Test Search handle selection
 	const handleChange = value => {
-		console.log(selectedValue)
+		//console.log(selectedValue)
 		delete value.RowNumber
 		setSelectedValue([...selectedValue, value])
 	}
-	console.log(selectedValue)
+	//console.log(selectedValue)
 
 	//Test Search results from api
 	const fetchData = () => {
@@ -129,20 +157,27 @@ const ViewModal = props => {
 		// })
 		return searchTestApiCall.post('/Fetch_Services_For_Order', searchData).then(result => {
 			const res = result.data.Message[0].Service_List
-			console.log(res)
+			//console.log(res)
 			return res
 		})
 	}
 
-
-	const removeOldService = (value) =>{
+	//Remove the pre selected Tests
+	const removeOldService = value => {
 		let newSelectedVal = selectedValue
-		newSelectedVal.splice(value,1)
+		newSelectedVal.splice(value, 1)
 		setSelectedValue([...newSelectedVal])
 	}
+
+	//Remove the Coupon Code
+	const removeCoupenCode = () => {
+		setPromoCode(null)
+	}
+
 	// console.log('bookdetail', bookingDetail)
 	// console.log('phlebotomistList', phlebotomistList)
 	// console.log('promocode', promoCode)
+	console.log(promocodeDetails)
 	return (
 		<Modal isOpen size='lg'>
 			<ModalHeader className='w-100'>
@@ -257,7 +292,7 @@ const ViewModal = props => {
 												return (
 													<tr key={key}>
 														<td>{values.Service_Name}</td>
-														<td>{values.Service_Discount}</td>
+														<td>{values.Service_Discount ? values.Service_Discount : values.Amount*promocodeDetails.Promo_Percentage/100}</td>
 														<td>{values.Amount > 0 ? values.Amount : values.Service_Amount}</td>
 													</tr>
 												)
@@ -265,7 +300,7 @@ const ViewModal = props => {
 										<tr>
 											<th scope='row'>Sample Collection Charge</th>
 											<th></th>
-											<th>{bookingDetail.Sample_Collection_Charge}</th>
+											<th>{collectionCharges.Collection_Charge}</th>
 										</tr>
 										<tr>
 											<th scope='row'>Amount Payable</th>
@@ -366,7 +401,11 @@ const ViewModal = props => {
 													className='btn btn-sm btn-primary button-tag'
 													onClick={() => removeOldService(i)}
 													style={{ marginRight: '10px', marginBottom: '10px' }}
-													disabled={item.hasOwnProperty('item.Is_Editable_Service') ? !item.Is_Editable_Service || item.Is_Editable_Service === false : false}
+													disabled={
+														item.hasOwnProperty('item.Is_Editable_Service')
+															? !item.Is_Editable_Service || item.Is_Editable_Service === false
+															: false
+													}
 												>
 													{item.Service_Name}
 													<span className='badge badge-close'>
@@ -389,9 +428,11 @@ const ViewModal = props => {
 											onChange={e => setPromoCode(e.target.value)}
 											value={promoCode}
 										/>
-
+										<span className='fa fa-times-circle closeIcon' onClick={() => removeCoupenCode()} />
 										<InputGroupAddon addonType='append'>
-											<Button color='secondary'>Apply</Button>
+											<Button color='secondary'>
+												Apply &nbsp; <Spinner size='sm' className='ml-2 m-1' />
+											</Button>
 										</InputGroupAddon>
 									</InputGroup>
 								</div>
