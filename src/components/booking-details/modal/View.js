@@ -97,9 +97,7 @@ const ViewModal = props => {
 	useEffect(() => {
 		if (promoCode == '' || promoCode == null) {
 			let sum = 0
-			selectedValue &&
-				selectedValue.length &&
-				selectedValue.forEach(values => {
+			selectedValue && selectedValue.length && selectedValue.forEach(values => {
 					values.Service_Amount ? (sum += values.Service_Amount) : (sum += values.Amount)
 					settotalValues(sum)
 				})
@@ -112,11 +110,11 @@ const ViewModal = props => {
 				selectedValue.forEach(values => {
 					values.Service_Amount ? (sum += values.Service_Amount) : (sum += values.Amount)
 					console.log(values)
-					values.Service_Discount ? (discount+= values.Service_Discount):(values.Suppress_Discount== false ? (discount+= values.Amount*10/100):((discount+= 0)))
+					values.Service_Discount ? (discount+= values.Service_Discount):(values.Suppress_Discount== false ? (discount+= values.Amount*(promocodeDetails.Offer_Percentage?promocodeDetails.Offer_Percentage:promocodeDetails.Promo_Percentage)/100):((discount+= 0)))
 					console.log(discount)
 					settotalValues(sum)
 				})	
-			return sampleCollectionCharges(sum)
+			return sampleCollectionCharges(sum-discount)
 		}
 	}, [selectedValue, promoCode])
 
@@ -292,7 +290,7 @@ const ViewModal = props => {
 												return (
 													<tr key={key}>
 														<td>{values.Service_Name}</td>
-														<td>{values.Service_Discount ? values.Service_Discount : values.Amount*promocodeDetails.Promo_Percentage/100}</td>
+														<td>{values.Service_Discount>=0 ? values.Service_Discount : values.Amount*promocodeDetails.Promo_Percentage/100}</td>
 														<td>{values.Amount > 0 ? values.Amount : values.Service_Amount}</td>
 													</tr>
 												)
