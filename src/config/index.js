@@ -74,7 +74,7 @@ export const API_ENDPOINT = {
 	VIEW_PRESCRIPTION: 'View_Prescription',
 	VIEW_INVOICE: 'InvoiceDownload',
 	BOOK_TEST: 'Booking_Order',
-	BOOKING_UPDATE: 'Update_Ordered_Booking',
+	BOOKING_UPDATE: 'Update_Ordered_Bookinggg',
 	ADD_GROUP_TEST: 'Add_Package',
 	GET_GROUP_TEST: 'Package_List',
 	GET_SOS: 'SOS_Alert_List',

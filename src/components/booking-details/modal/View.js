@@ -18,7 +18,7 @@ import _, { result, values } from 'lodash'
 import moment from 'moment'
 import { useSelector } from 'react-redux'
 import searchTestApiCall from './searchTestapi'
-import "./style.css"
+import './style.css'
 
 const ViewModal = props => {
 	const [bookingDetail, setBookDetail] = useState({})
@@ -48,7 +48,8 @@ const ViewModal = props => {
 	const [promocodeStatus, setPromoCodeStatus] = useState(false)
 	const [promoloader, setPromoLoader] = useState(false)
 	const [hasError, setHasError] = useState(false)
-	const [invoiceLoading,setInvoiceLoading]=useState(false)
+	const [invoiceLoading, setInvoiceLoading] = useState(false)
+
 	useEffect(() => {
 		const getTest = newValue => {
 			const searchData = {
@@ -219,6 +220,7 @@ const ViewModal = props => {
 		})
 	}
 
+	//Update
 	const onClickSubmit = () => {
 		//this.setState({ showLoading: true })
 		if (isEmptyArray(selectedValue)) {
@@ -335,11 +337,7 @@ const ViewModal = props => {
 							{props.bookingDetail.Invoice_Status !== false && props.bookingDetail.Invoice_Status !== 'false' ? (
 								<>
 									<img src={require('../../../assets/media/images/pdf.svg')} alt='pdf' width='10' height='10' />
-									<button
-										disabled={invoiceLoading}
-										className='btn btn-link'
-										onClick={() => downloadFile('invoice')}
-									>
+									<button disabled={invoiceLoading} className='btn btn-link' onClick={() => downloadFile('invoice')}>
 										{invoiceLoading ? 'Opening...' : 'View Invoice'}
 									</button>
 								</>
@@ -481,7 +479,7 @@ const ViewModal = props => {
 														<tr key={key}>
 															<td>{values.Service_Name}</td>
 															<td>
-																{values.Service_Discount >= 0
+																{promocodeStatus && values.Service_Discount >= 0
 																	? values.Service_Discount
 																	: values.Suppress_Discount == false &&
 																	  (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100}
@@ -493,12 +491,12 @@ const ViewModal = props => {
 											<tr>
 												<th scope='row'>Sample Collection Charge</th>
 												<th></th>
-													<th>{collectionCharges.Collection_Charge}</th>
+												<th>{collectionCharges.Collection_Charge}</th>
 											</tr>
 											<tr>
 												<th scope='row'>Amount Payable</th>
 												<th>
-													{totalDiscount !== 0 && (
+													{promocodeStatus && totalDiscount !== 0 && (
 														<p className='mb-0 mr-4 text-color text-danger'>{totalDiscount.toFixed(2)}</p>
 													)}
 												</th>
