@@ -1,0 +1,9 @@
+.closeIcon {
+    float: right;
+    margin-top: 10px;
+    right: 90px !important;
+    position: absolute;
+    z-index: 0 !important;
+    color: red;
+    cursor: pointer;
+}

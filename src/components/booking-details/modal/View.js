@@ -14,18 +14,17 @@ import { TOAST } from '../../../utils/Constants'
 import profile from '../../../assets/media/images/image.png'
 import { isEmptyString, isEmptyArray } from '../../../utils/validations'
 import store from 'store'
-import _, { result } from 'lodash'
+import _, { result, values } from 'lodash'
 import moment from 'moment'
-//import SelectSearch from 'react-select-search'
-//import Select from 'react-select'
-//import SelectSearch, { fuzzySearch } from "react-select-search";
-//import './select-search.css'
 import { useSelector } from 'react-redux'
 import searchTestApiCall from './searchTestapi'
+import "./style.css"
 
 const ViewModal = props => {
 	const [bookingDetail, setBookDetail] = useState({})
 	const [phlebotomistList, setPhlebotomistList] = useState([])
+	const [selectedPhlebotomistList, setSelectedPhlebotomistList] = useState('')
+	const [bookingType, setBookingType] = useState('')
 	const [serviceDetail, setServiceDetail] = useState([])
 	const [promoCode, setPromoCode] = useState('')
 	const [testCollection, setTestCollection] = useState({ value: '', label: '' })
@@ -36,6 +35,7 @@ const ViewModal = props => {
 	const [selectedValue, setSelectedValue] = useState([])
 	const [totalValues, settotalValues] = useState(0)
 	const [collectionCharges, setCollectionCharges] = useState({})
+	const [totalDiscount, setTotalDiscount] = useState(0)
 	const [promocodeDetails, setPromoCodeDetails] = useState({
 		Availed_Times: 0,
 		Coupon_Code: '',
@@ -47,7 +47,8 @@ const ViewModal = props => {
 	})
 	const [promocodeStatus, setPromoCodeStatus] = useState(false)
 	const [promoloader, setPromoLoader] = useState(false)
-	const[hasError,setHasError] = useState(false)
+	const [hasError, setHasError] = useState(false)
+	const [invoiceLoading,setInvoiceLoading]=useState(false)
 	useEffect(() => {
 		const getTest = newValue => {
 			const searchData = {
@@ -57,10 +58,8 @@ const ViewModal = props => {
 			}
 			props.getTestDetails(searchData, result => {
 				if (result) {
-					//console.log(testList)
 					let convertValue = []
 					testList.filter(i => convertValue.push({ value: i, label: i.Service_Name }))
-					//console.log(convertValue)
 					setTestCollection(convertValue)
 				}
 			})
@@ -80,6 +79,7 @@ const ViewModal = props => {
 				Promo_Heading: props.bookingDetail.Promo_Heading,
 				Offer_Percentage: props.bookingDetail.Promo_Percentage,
 			})
+			setBookingType(props.bookingDetail.Booking_Type_Code)
 		}
 	}, [])
 
@@ -128,6 +128,7 @@ const ViewModal = props => {
 								(values.Amount * (promocodeDetails.Offer_Percentage ? promocodeDetails.Offer_Percentage : 100)) / 100)
 						: (discount += 0)
 					console.log(discount)
+					setTotalDiscount(discount)
 					settotalValues(sum)
 				})
 			return sampleCollectionCharges(sum - discount)
@@ -136,17 +137,14 @@ const ViewModal = props => {
 
 	// Test Search handle input change event
 	const handleInputChange = value => {
-		//console.log(value)
 		setValue(value)
 	}
 
 	// Test Search handle selection
 	const handleChange = value => {
-		//console.log(selectedValue)
 		delete value.RowNumber
 		setSelectedValue([...selectedValue, value])
 	}
-	//console.log(selectedValue)
 
 	//Test Search results from api
 	const fetchData = () => {
@@ -199,7 +197,6 @@ const ViewModal = props => {
 	}
 
 	//Check For Coupon
-
 	const checkForCoupon = () => {
 		setPromoLoader(true)
 		const promotionData = {
@@ -215,55 +212,97 @@ const ViewModal = props => {
 				setPromoCode(result.Message[0].Coupon_Code)
 				setPromoLoader(false)
 			} else if (result.SuccessFlag === 'false') {
-				setPromoCodeStatus(result.SuccessFlag)
+				setPromoCodeStatus(false)
 				setPromoLoader(false)
 				setPromoCode('')
 			}
 		})
 	}
 
-	// console.log('bookdetail', bookingDetail)
-	// console.log('phlebotomistList', phlebotomistList)
-	// console.log('promocode', promoCode)
-	console.log(promocodeDetails)
-
-
 	const onClickSubmit = () => {
-		this.setState({ showLoading: true })
-
-		if (isEmptyArray(this.state.serviceArr)) {
-			this.setState({ hasError: true })
-		} else if (isEmptyString(this.state.selectedPhlebotomist) && this.props.bookingDetail.Booking_Type_Code !== 'W') {
-			this.setState({ hasError: true })
+		//this.setState({ showLoading: true })
+		if (isEmptyArray(selectedValue)) {
+			setHasError(true)
+		} else if (isEmptyString(selectedPhlebotomistList) && props.bookingDetail.Booking_Type_Code !== 'W') {
+			setHasError(true)
 		} else {
 			let serArr = []
-
-			this.state.serviceArr.forEach(element => {
+			selectedValue.forEach(element => {
+				let serviceAmount = 0
+				if (element.Service_Amount) {
+					serviceAmount = element.Service_Amount
+				} else {
+					serviceAmount = element.Amount
+				}
+				let serviceDiscount = 0
+				if (element.Service_Discount) {
+					serviceDiscount = element.Service_Discount
+				} else if (element.Suppress_Discount == false) {
+					serviceDiscount = element.Amount / promocodeDetails.Offer_Percentage
+				} else {
+					serviceDiscount = 0
+				}
 				serArr.push({
 					Service_Code: element.Service_Code,
-					Service_Discount: element.Service_Discount,
-					Service_Amount: element.Service_Amount,
+					Service_Discount: serviceDiscount,
+					Service_Amount: serviceAmount,
 				})
 			})
-
 			const data = {
-				Labadmin_Code: this.props.labAdminCode,
-				Firm_No: this.props.bookingDetail.Firm_No,
-				Booking_Type: this.props.bookingDetail.Booking_Type_Code,
-				Booking_Date: this.props.bookingDetail.Booking_Date,
-				Booking_No: this.props.bookingDetail.Booking_No,
-				Collector_Code: this.state.selectedPhlebotomist,
+				Labadmin_Code: props.labAdminCode,
+				Firm_No: props.bookingDetail.Firm_No,
+				Booking_Type: bookingType,
+				Booking_Date: props.bookingDetail.Booking_Date,
+				Booking_No: props.bookingDetail.Booking_No,
+				Collector_Code: selectedPhlebotomistList,
 				Service_Reg_Data: serArr,
-				Promo_Code: this.state.promotion,
-				Sample_Collect_Charge: this.state.collectionCharges,
+				Promo_Code: promoCode,
+				Sample_Collect_Charge: collectionCharges.Collection_Charge,
 			}
-			this.props.bookingUpdate(data, result => {
-				this.setState({ showLoading: false })
+			props.bookingUpdate(data, result => {
+				//this.setState({ showLoading: false })
 				if (result.SuccessFlag === 'true') {
-					this.props.showNotification('Success', 'Booking updated Successfully', TOAST.TYPE_SUCCESS)
-					this.props.onClickClose()
+					props.showNotification('Success', 'Booking updated Successfully', TOAST.TYPE_SUCCESS)
+					props.onClickClose()
 				} else {
-					this.props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
+					props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
+				}
+			})
+		}
+	}
+
+	//Download Invoice
+	const downloadFile = invoice => {
+		if (invoice) {
+			setInvoiceLoading(true)
+			const data = {
+				Labadmin_Code: props.labAdminCode,
+				Firm_No: props.bookingDetail.Firm_No,
+				Invoice_No: props.bookingDetail.Invoice_No,
+				Invoice_Date: props.bookingDetail.Invoice_Date,
+			}
+			props.viewInvoice(data, (success, res) => {
+				if (success) {
+					let arr = []
+					if (res.Message[0].InvoiceReport_Url) arr.push(res.Message[0].InvoiceReport_Url)
+					arr.forEach(url => FileSaver.saveAs(url))
+				}
+				setInvoiceLoading(true)
+			})
+		} else {
+			const data = {
+				Labadmin_Code: props.labAdminCode,
+				Firm_No: props.bookingDetail.Firm_No,
+				Booking_Type: props.bookingDetail.Booking_Type_Code,
+				Booking_Date: props.bookingDetail.Booking_Date,
+				Booking_No: props.bookingDetail.Booking_No,
+			}
+			props.viewPrescription(data, (success, res) => {
+				if (success) {
+					let arr = []
+					if (res.Message[0].Prescription_File1) arr.push(res.Message[0].Prescription_File1)
+					if (res.Message[0].Prescription_File2) arr.push(res.Message[0].Prescription_File2)
+					arr.forEach(url => FileSaver.saveAs(url))
 				}
 			})
 		}
@@ -297,11 +336,11 @@ const ViewModal = props => {
 								<>
 									<img src={require('../../../assets/media/images/pdf.svg')} alt='pdf' width='10' height='10' />
 									<button
-										disabled={state.invoiceLoading}
+										disabled={invoiceLoading}
 										className='btn btn-link'
 										onClick={() => downloadFile('invoice')}
 									>
-										{state.invoiceLoading ? 'Opening...' : 'View Invoice'}
+										{invoiceLoading ? 'Opening...' : 'View Invoice'}
 									</button>
 								</>
 							) : null}
@@ -444,27 +483,26 @@ const ViewModal = props => {
 															<td>
 																{values.Service_Discount >= 0
 																	? values.Service_Discount
-																	: (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100}
+																	: values.Suppress_Discount == false &&
+																	  (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100}
 															</td>
-															<td>{values.Amount > 0 ? values.Amount : values.Service_Amount}</td>
+															<td>{values.Amount > 0 ? values.Amount.toFixed(2) : values.Service_Amount.toFixed(2)}</td>
 														</tr>
 													)
 												})}
 											<tr>
 												<th scope='row'>Sample Collection Charge</th>
 												<th></th>
-												<th>{collectionCharges.Collection_Charge}</th>
+													<th>{collectionCharges.Collection_Charge}</th>
 											</tr>
 											<tr>
 												<th scope='row'>Amount Payable</th>
 												<th>
-													{bookingDetail.Discount_Amount > 0 ? (
-														<h5 style={{ color: 'red' }}>{bookingDetail.Discount_Amount}</h5>
-													) : (
-														''
+													{totalDiscount !== 0 && (
+														<p className='mb-0 mr-4 text-color text-danger'>{totalDiscount.toFixed(2)}</p>
 													)}
 												</th>
-												<th>{totalValues}</th>
+												<th>{totalValues.toFixed(2)}</th>
 											</tr>
 											<tr>
 												<th scope='row'>Amount Paid</th>
@@ -480,7 +518,13 @@ const ViewModal = props => {
 									<h6>Choose Phlebotomist </h6>
 									<div className='dropdown bg-dark'>
 										<FormGroup>
-											<Input type='select' id='filter' placeholder='Select' name='selectedPhlebotomist'>
+											<Input
+												type='select'
+												id='filter'
+												placeholder='Select'
+												name='selectedPhlebotomist'
+												onChange={e => setSelectedPhlebotomistList(e.target.value)}
+											>
 												<option value=''>Select Phlebotomist</option>
 												{phlebotomistList &&
 													phlebotomistList.length &&
@@ -494,8 +538,36 @@ const ViewModal = props => {
 											</Input>
 										</FormGroup>
 									</div>
-
+									{hasError &&
+										isEmptyString(selectedPhlebotomistList) &&
+										props.bookingDetail.Booking_Type_Code !== 'W' && (
+											<div>
+												<small className='text-danger'>Phlebotomist is required</small>
+											</div>
+										)}
 									<h6 className='mt-4'>Visit Type</h6>
+									{props.visitType &&
+										props.visitType.map((item, i) => {
+											// Remove Direct Visit Type
+											if (item.Booking_Type_Code !== 'L') {
+												return (
+													<div key={i} className='form-check-inline'>
+														<label className='form-check-label'>
+															<input
+																type='radio'
+																className='form-check-input'
+																name='bookType'
+																value={item.Booking_Type_Code}
+																onChange={e => setBookingType(e.target.value)}
+																disabled
+																checked={bookingType === item.Booking_Type_Code}
+															/>
+															{item.Type_Of_Booking}
+														</label>
+													</div>
+												)
+											}
+										})}
 
 									<div className='input-group mt-4'>
 										<h6 className='mt-4'>Search Test</h6>
@@ -568,13 +640,15 @@ const ViewModal = props => {
 												)
 											})}
 									</div>
+									{hasError && isEmptyArray(selectedValue) && (
+										<div>
+											<small className='text-danger'>Select an Service to Continue</small>
+										</div>
+									)}
 									<div className='input-group mt-4'>
 										<h6 className=''>
 											Voucher Code{' '}
-											<span
-												className='ml-2'
-												style={{ float: 'right', color: promocodeStatus ? 'green' : 'red' }}
-											>
+											<span className='ml-2' style={{ float: 'right', color: promocodeStatus ? 'green' : 'red' }}>
 												{promocodeStatus ? 'Promo Applied' : 'Voucher Invalid!'}
 											</span>
 										</h6>
