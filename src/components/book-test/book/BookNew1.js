@@ -26,7 +26,7 @@ import { TOAST } from '../../../utils/Constants'
 import { PATH } from '../../../config/routes'
 import { resetToInitialState } from '../../../actions/commonAction'
 
-class BookNew extends Component {
+class BookNewone extends Component {
 	constructor(props) {
 		super(props)
 		this.myRef = React.createRef()
@@ -790,9 +790,9 @@ class BookNew extends Component {
 																				return (
 																					<li key={i}>
 																						{/* <span onClick={() => this.addService(item.Service_Code, item.Amount)}>
-																							<i 
-																								className='fal fa-plus' 
-																								
+																							<i
+																								className='fal fa-plus'
+
 																							/>
 																						</span> */}
 																						<button
@@ -1410,7 +1410,7 @@ const mapStateToProps = state => {
 	}
 }
 
-BookNew.propTypes = {
+BookNewone.propTypes = {
 	phlebotomistList: PropTypes.array,
 	testList: PropTypes.array,
 	bookingTypeList: PropTypes.array,
@@ -1435,7 +1435,7 @@ BookNew.propTypes = {
 	getCollectionCharges: PropTypes.func,
 }
 
-export default Layout(BookNew, mapStateToProps, {
+export default Layout(BookNewone, mapStateToProps, {
 	getPhlebotomistDetails,
 	getBookingTypeDetails,
 	getPatientListDetails,

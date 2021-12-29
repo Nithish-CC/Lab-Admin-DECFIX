@@ -68,7 +68,6 @@ const ViewModal = props => {
 		getTest('a')
 		if (Object.keys(props).length) {
 			console.log(props)
-			alert('hii hii')
 			setBookDetail(props.bookingDetail)
 			setPhlebotomistList(props.phlebotomistList)
 			//To have intial selected test
@@ -113,7 +112,6 @@ const ViewModal = props => {
 				})
 			return sampleCollectionCharges(sum)
 		} else if (promoCode != '' && promocodeDetails.Offer_Percentage > 0) {
-			alert(promocodeDetails.Offer_Percentage)
 			setPromoCodeStatus(true)
 			let sum = 0
 			let discount = 0
@@ -472,35 +470,43 @@ const ViewModal = props => {
 											</tr>
 										</thead>
 										<tbody>
-											{selectedValue &&
-												selectedValue.length &&
-												selectedValue.map((values, key) => {
-													return (
-														<tr key={key}>
-															<td>{values.Service_Name}</td>
-															<td>
-																{promocodeStatus && values.Service_Discount >= 0
-																	? values.Service_Discount
-																	: values.Suppress_Discount == false &&
-																	  (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100}
-															</td>
-															<td>{values.Amount > 0 ? values.Amount.toFixed(2) : values.Service_Amount.toFixed(2)}</td>
-														</tr>
-													)
-												})}
+											{selectedValue && selectedValue.length
+												? selectedValue.map((values, key) => {
+														return (
+															<tr key={key}>
+																<td>{values.Service_Name}</td>
+																<td>
+																	{promocodeStatus && values.Service_Discount >= 0
+																		? values.Service_Discount
+																		: values.Suppress_Discount == false &&
+																		  (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100}
+																</td>
+																<td>
+																	{values.Amount > 0 && selectedValue && selectedValue.length
+																		? values.Amount.toFixed(2)
+																		: selectedValue && selectedValue.length
+																		? values.Service_Amount.toFixed(2)
+																		: ''}
+																</td>
+															</tr>
+														)
+												  })
+												: ''}
 											<tr>
 												<th scope='row'>Sample Collection Charge</th>
 												<th></th>
-												<th>{collectionCharges.Collection_Charge}</th>
+												<th>{selectedValue && selectedValue.length ? collectionCharges.Collection_Charge : 0}</th>
 											</tr>
 											<tr>
 												<th scope='row'>Amount Payable</th>
 												<th>
 													{promocodeStatus && totalDiscount !== 0 && (
-														<p className='mb-0 mr-4 text-color text-danger'>{totalDiscount.toFixed(2)}</p>
+														<p className='mb-0 mr-4 text-color text-danger'>
+															{selectedValue && selectedValue.length ? totalDiscount.toFixed(2) : ''}
+														</p>
 													)}
 												</th>
-												<th>{totalValues.toFixed(2)}</th>
+												<th>{selectedValue && selectedValue.length ? totalValues.toFixed(2) : 0}</th>
 											</tr>
 											<tr>
 												<th scope='row'>Amount Paid</th>
@@ -558,6 +564,7 @@ const ViewModal = props => {
 																value={item.Booking_Type_Code}
 																onChange={e => setBookingType(e.target.value)}
 																disabled
+																//defaultChecked={setStatusMode(el.enabled, k)}
 																checked={bookingType === item.Booking_Type_Code}
 															/>
 															{item.Type_Of_Booking}
@@ -614,29 +621,29 @@ const ViewModal = props => {
 									<div>
 										<small className='text-danger'>Select an Service to Continue</small>
 									</div> */}
-										{selectedValue &&
-											selectedValue.length &&
-											selectedValue.map((item, i) => {
-												return (
-													<button
-														key={i}
-														type='button'
-														className='btn btn-sm btn-primary button-tag'
-														onClick={() => removeOldService(i)}
-														style={{ marginRight: '10px', marginBottom: '10px' }}
-														disabled={
-															item.hasOwnProperty('item.Is_Editable_Service')
-																? !item.Is_Editable_Service || item.Is_Editable_Service === false
-																: false
-														}
-													>
-														{item.Service_Name}
-														<span className='badge badge-close'>
-															<i className='far fa-times' />
-														</span>
-													</button>
-												)
-											})}
+										{selectedValue && selectedValue.length
+											? selectedValue.map((item, i) => {
+													return (
+														<button
+															key={i}
+															type='button'
+															className='btn btn-sm btn-primary button-tag'
+															onClick={() => removeOldService(i)}
+															style={{ marginRight: '10px', marginBottom: '10px' }}
+															disabled={
+																item.hasOwnProperty('item.Is_Editable_Service')
+																	? !item.Is_Editable_Service || item.Is_Editable_Service === false
+																	: false
+															}
+														>
+															{item.Service_Name}
+															<span className='badge badge-close'>
+																<i className='far fa-times' />
+															</span>
+														</button>
+													)
+											  })
+											: ''}
 									</div>
 									{hasError && isEmptyArray(selectedValue) && (
 										<div>
@@ -647,7 +654,11 @@ const ViewModal = props => {
 										<h6 className=''>
 											Voucher Code{' '}
 											<span className='ml-2' style={{ float: 'right', color: promocodeStatus ? 'green' : 'red' }}>
-												{promocodeStatus ? 'Promo Applied' : 'Voucher Invalid!'}
+												{promocodeStatus && selectedValue && selectedValue.length
+													? 'Promo Applied'
+													: selectedValue && selectedValue.length
+													? 'Voucher Invalid!'
+													: ''}
 											</span>
 										</h6>
 										<InputGroup>

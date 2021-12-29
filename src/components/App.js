@@ -30,7 +30,7 @@ import BookNew from './book-test/book/BookNew'
 import Notification from './notifications'
 import SosAlert from './sos-alert'
 import Rating from './rating'
-
+import BookNewone from './book-test/book/BookNew1'
 /**
  * Authenticated routes middleware
  * @param {*} Component
@@ -65,6 +65,7 @@ class App extends Component {
 								<PrivateRoute path={PATH.NOTIFICATIONS} exact component={Notification} />
 								<PrivateRoute path={PATH.SOS_ALERT} exact component={SosAlert} />
 								<PrivateRoute path={PATH.RATING} exact component={Rating} />
+								<PrivateRoute path="/book-test/BookNewone" component={BookNewone}/>
 								{/* <PrivateRoute exact component={NotFoundScreen} /> */}
 							</Switch>
 						</React.Fragment>
