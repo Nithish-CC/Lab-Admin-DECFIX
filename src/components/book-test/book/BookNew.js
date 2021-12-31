@@ -50,13 +50,14 @@ const BookNew = props => {
 	const [slotTime, setSlotTime] = useState([])
 	const [patientDetails, setPatinetDetails] = useState([])
 	//Selected PhlebotomistList
+	const [searchTestValue, setSearchTestValue] = useState('')
 	const [selectedPhlebotomistList, setSelectedPhlebotomistList] = useState('')
 	const [testCollection, setTestCollection] = useState([])
 	const [selectedValue, setSelectedValue] = useState([])
 	const [amountWithDisCount, setAmountWithDisCountotalValues] = useState(0)
 	const [amountWithoutDisCount, setAmountWithoutDisCount] = useState(0)
 	const [totalValues, settotalValues] = useState(0)
-	const [collectionCharges, setCollectionCharges] = useState({})
+	const [collectionCharges, setCollectionCharges] = useState({ Collection_Charge: 0 })
 	const [totalDiscount, setTotalDiscount] = useState(0)
 	const [timeSlotSelected, settimeSlotSelected] = useState('')
 	const [bookingSlot, setBookingSlot] = useState(moment(new Date()).format('YYYY-MM-DD'))
@@ -76,13 +77,14 @@ const BookNew = props => {
 	const [promocodeStatus, setPromoCodeStatus] = useState(false)
 	const [promoloader, setPromoLoader] = useState(false)
 	const [invoiceLoading, setInvoiceLoading] = useState(false)
+	const [promoMsg, setPromoMsg] = useState('')
 	//single book type
 	const [defaultAddress, setDetfaultAddress] = useState({})
 	const [defaultPatientLogin, setDetfaultPatientLogin] = useState({})
 	const [paymentmode, setPaymentMode] = useState('C')
 	const [hasError, setHasError] = useState(false)
 	const [showConfirmation, setShowConfirmation] = useState(false)
-	const [bookingNumber,setBookingNumber]=useState(0)
+	const [bookingNumber, setBookingNumber] = useState(0)
 	useEffect(() => {
 		props.patientUserList &&
 			props.patientUserList.length &&
@@ -210,7 +212,17 @@ const BookNew = props => {
 
 	//Add new Test data
 	const addService = (item, i) => {
-		setSelectedValue([...selectedValue, item])
+		console.log(item)
+		const found = selectedValue.find(element => element.Service_Code == item.Service_Code)
+		if (found == undefined) {
+			setSelectedValue([...selectedValue, item])
+			setSearchTestValue('')
+			let newSelectedVal = props.testList
+			newSelectedVal.splice(i, 1)
+		} else {
+			setSearchTestValue('')
+			props.showNotification('Error', 'Test Exsists', TOAST.TYPE_ERROR)
+		}
 	}
 
 	//Remove the pre selected Tests
@@ -222,23 +234,30 @@ const BookNew = props => {
 
 	//Sample Collection Charges
 	const sampleCollectionCharges = sum => {
-		props.getCollectionCharges(
-			{
-				Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
-				Bill_Amount: sum,
-				Pt_Code: getPatient.Pt_Code,
-			},
-			(success, data) => {
-				if (success) {
-					setCollectionCharges(data)
-					settotalValues(sum + data.Collection_Charge)
+		console.log(bookingTypeDetails)
+		if (bookingTypeDetails.visitType === 'W') {
+			setCollectionCharges({ Collection_Charge: 0 })
+			settotalValues(sum + 0)
+		} else {
+			props.getCollectionCharges(
+				{
+					Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
+					Bill_Amount: sum,
+					Pt_Code: getPatient.Pt_Code,
+				},
+				(success, data) => {
+					if (success) {
+						setCollectionCharges(data)
+						settotalValues(sum + data.Collection_Charge)
+					}
 				}
-			}
-		)
+			)
+		}
 	}
 
 	//Calculate Amount
 	useEffect(() => {
+		//alert(promoCode)
 		if (promoCode == '' || promoCode == null) {
 			let sum = 0
 			selectedValue &&
@@ -248,7 +267,7 @@ const BookNew = props => {
 					setAmountWithoutDisCount(sum)
 				})
 			return sampleCollectionCharges(sum)
-		} else if (promoCode != '' && promocodeDetails.Offer_Percentage > 0) {
+		} else if ((promoCode != '' && promocodeDetails.Offer_Percentage > 0) || promocodeDetails.Discount_In_Percent > 0) {
 			setPromoCodeStatus(true)
 			let sum = 0
 			let discount = 0
@@ -261,7 +280,13 @@ const BookNew = props => {
 						? (discount += values.Service_Discount)
 						: values.Suppress_Discount == false
 						? (discount +=
-								(values.Amount * (promocodeDetails.Offer_Percentage ? promocodeDetails.Offer_Percentage : 100)) / 100)
+								(values.Amount *
+									(promocodeDetails.Offer_Percentage
+										? promocodeDetails.Offer_Percentage
+										: promocodeDetails.Discount_In_Percent
+										? promocodeDetails.Discount_In_Percent
+										: 100)) /
+								100)
 						: (discount += 0)
 
 					setTotalDiscount(discount)
@@ -275,6 +300,7 @@ const BookNew = props => {
 	//Remove the Coupon Code
 	const removeCoupenCode = () => {
 		setPromoCode('')
+		setPromoMsg('')
 		setPromoCodeDetails({
 			Availed_Times: 0,
 			Coupon_Code: '',
@@ -301,10 +327,22 @@ const BookNew = props => {
 				setPromoCodeDetails(result.Message[0])
 				setPromoCode(result.Message[0].Coupon_Code)
 				setPromoLoader(false)
+				setPromoMsg('Promo Applied')
 			} else if (result.SuccessFlag === 'false') {
 				setPromoCodeStatus(false)
 				setPromoLoader(false)
 				setPromoCode('')
+				setPromoMsg('Voucher Invalid!')
+				setPromoCodeDetails({
+					Availed_Times: 0,
+					Coupon_Code: '',
+					Coupon_Desc: '',
+					Coupon_Heading: '',
+					Offer_Percentage: 0,
+					Offer_Times: 0,
+					Validity_ToDate: '',
+				})
+				setPromoCodeStatus(false)
 			}
 		})
 	}
@@ -348,6 +386,11 @@ const BookNew = props => {
 		// if (code === 'W') {
 		// 	this.setState({ phlebotomist: '' })
 		// }
+		setBookingSlot(moment(new Date()).format('YYYY-MM-DD'))
+		settimeSlotSelected('')
+		removeCoupenCode()
+		setSelectedPhlebotomistList('')
+		alert(code)
 		setBookingTypeDetails({
 			minDate: moment(startDate).format('YYYY-MM-DD'),
 			maxDate: moment(endDate).format('YYYY-MM-DD'),
@@ -368,27 +411,33 @@ const BookNew = props => {
 						setCollectionCharges({ Collection_Charge: 0 })
 						//this.setState({ collectionCharges: 0 })
 					}
-					// if (data.Promo_Code && data.Promo_Code.trim() !== '' && bookingTypeDetails.visitType === 'W') {
-					// 	this.setState({ promotion: data.Promo_Code }, () => {
-					// 		const serviceTotalDis =
-					// 			this.state.serviceTotal - this.state.serviceTotal * (data.Discount_In_Percent / 100)
-					// 		this.setState({
-					// 			promoApplied: true,
-					// 			promotionSelected: this.state.promotion,
-					// 			promoAppliedMsg: 'Promo Applied',
-					// 			promotionPercent: data.Discount_In_Percent,
-					// 			serviceTotalDis,
-					// 		})
-					// 	})
-					// } else {
-					// 	this.setState({
-					// 		promoApplied: false,
-					// 		promotion: '',
-					// 		promoAppliedMsg: '',
-					// 		promotionPercent: 0,
-					// 		promotionSelected: '',
-					// 	})
-					// }
+					console.log(data.Promo_Code && data.Promo_Code.trim() !== '' && code == 'W')
+					if (data.Promo_Code && data.Promo_Code.trim() !== '' && code === 'W') {
+						// this.setState({ promotion: data.Promo_Code }, () => {
+						// 	const serviceTotalDis =
+						// 		this.state.serviceTotal - this.state.serviceTotal * (data.Discount_In_Percent / 100)
+						// 	this.setState({
+						// 		promoApplied: true,
+						// 		promotionSelected: this.state.promotion,
+						// 		promoAppliedMsg: 'Promo Applied',
+						// 		promotionPercent: data.Discount_In_Percent,
+						// 		serviceTotalDis,
+						// 	})
+						// })
+						alert(data.Promo_Code)
+						setPromoCodeStatus(true)
+						setPromoCodeDetails(data)
+						setPromoCode(data.Promo_Code)
+					} else {
+						removeCoupenCode()
+						// this.setState({
+						// 	promoApplied: false,
+						// 	promotion: '',
+						// 	promoAppliedMsg: '',
+						// 	promotionPercent: 0,
+						// 	promotionSelected: '',
+						// })
+					}
 				}
 			}
 		)
@@ -425,6 +474,7 @@ const BookNew = props => {
 			arrService.push({
 				Service_Code: item.Service_Code,
 				Service_Amount: item.Amount,
+				Service_Suppress_Discount : item.Suppress_Discount,
 				Service_Discount:
 					item.Suppress_Discount === false && promocodeDetails.Offer_Percentage
 						? (item.Amount * promocodeDetails.Offer_Percentage) / 100
@@ -432,12 +482,7 @@ const BookNew = props => {
 			})
 		})
 
-		if (
-			isEmptyArray(arrService) ||
-			isEmptyString(timeSlotSelected) ||
-			isEmptyString(bookingSlot) ||
-			isEmptyString(selectedPhlebotomistList)
-		) {
+		if (isEmptyArray(arrService) || isEmptyString(timeSlotSelected) || isEmptyString(bookingSlot)) {
 			setHasError(true)
 			if (isEmptyString(timeSlotSelected)) {
 				props.showNotification('Warning', 'Please select slot time', TOAST.TYPE_ERROR)
@@ -448,9 +493,8 @@ const BookNew = props => {
 			if (isEmptyString(bookingSlot)) {
 				props.showNotification('Warning', 'Please select slot date', TOAST.TYPE_ERROR)
 			}
-			if (isEmptyString(selectedPhlebotomistList)) {
-				props.showNotification('Warning', 'Please select Phlebotomist', TOAST.TYPE_ERROR)
-			}
+		} else if (isEmptyString(selectedPhlebotomistList) && bookingTypeDetails.visitType == 'H') {
+			props.showNotification('Warning', 'Please select Phlebotomist', TOAST.TYPE_ERROR)
 		} else {
 			//this.setState({ showLoading: true })
 			let time = moment(timeSlotSelected.trim(), ['h:mm A']).format('HH:mm')
@@ -474,48 +518,81 @@ const BookNew = props => {
 				if (result.SuccessFlag === 'true') {
 					console.log('success')
 					props.showNotification('Success', result.Message && result.Message[0].Description, TOAST.TYPE_SUCCESS)
-					//props.history.push(PATH.BOOK_TEST)
 					setShowConfirmation(true)
-					alert(result.Message[0].Booking_No)
+					setPatientCode(null)
+					setGetPatient({
+						Labadmin_Code: '',
+						Pt_Code: '',
+					})
+					setSelectedPtCode({ selectedPtCode: patientCode })
+					setBookingTypeDetails({})
+					setSlotTime([])
+					setPatinetDetails([])
+					setSearchTestValue('')
+					setSelectedPhlebotomistList('')
+					setTestCollection([])
+					setSelectedValue([])
+					setAmountWithDisCountotalValues(0)
+					setAmountWithoutDisCount(0)
+					settotalValues(0)
+					setCollectionCharges({ Collection_Charge: 0 })
+					setTotalDiscount(0)
+					settimeSlotSelected('')
+					setBookingSlot(moment(new Date()).format('YYYY-MM-DD'))
+					setPromoCode('')
+					setAddressListData({})
+					setChoosePatient({})
+					setSelectedAddressType([])
+					setPromoCodeStatus(false)
+					setPromoLoader(false)
+					setInvoiceLoading(false)
+					setPromoMsg('')
+					setDetfaultAddress({})
+					setDetfaultPatientLogin({})
+					setPaymentMode('C')
+					setHasError(false)
+					setShowConfirmation(false)
+					setBookingNumber(0)
+					removeCoupenCode()
+					props.history.push(PATH.BOOK_TEST)
+				} else {
+					props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
 				}
-				else {
-					 props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
-					}
 			})
-			// this.props.bookTest(searchData, result => {
-			// 	this.setState({ showLoading: false })
-			// 	if (result.SuccessFlag === 'true') {
-			// 		this.props.showNotification('Success', result.Message && result.Message[0].Description, TOAST.TYPE_SUCCESS)
-			// 		this.setState(
-			// 			{
-			// 				showConfirmation: true,
-			// 				bookingNumber: result.Message[0].Booking_No,
-			// 				userListData: {},
-			// 				userData: {},
-			// 				maxDate: '',
-			// 				serviceTotal: 0,
-			// 				collectionCharges: 0,
-			// 				service: [],
-			// 				minDate: '',
-			// 				promotionSelected: '',
-			// 				visitType: '',
-			// 				promoApplied: false,
-			// 				promoAppliedMsg: '',
-			// 				promotion: '',
-			// 				promotionPercent: 0,
-			// 				paymentMode: 'C',
-			// 				phlebotomist: '',
-			// 				bookType: '',
-			// 				bookTime: '',
-			// 				bookDate: moment(new Date()).format('YYYY-MM-DD'),
-			// 			},
-			// 			() => this.executeScroll()
-			// 		)
-			// 		this.props.history.push(PATH.BOOK_TEST)
-			// 	} else {
-			// 		this.props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
-			// 	}
-			// })
+			// 	// this.props.bookTest(searchData, result => {
+			// 	// 	this.setState({ showLoading: false })
+			// 	// 	if (result.SuccessFlag === 'true') {
+			// 	// 		this.props.showNotification('Success', result.Message && result.Message[0].Description, TOAST.TYPE_SUCCESS)
+			// 	// 		this.setState(
+			// 	// 			{
+			// 	// 				showConfirmation: true,
+			// 	// 				bookingNumber: result.Message[0].Booking_No,
+			// 	// 				userListData: {},
+			// 	// 				userData: {},
+			// 	// 				maxDate: '',
+			// 	// 				serviceTotal: 0,
+			// 	// 				collectionCharges: 0,
+			// 	// 				service: [],
+			// 	// 				minDate: '',
+			// 	// 				promotionSelected: '',
+			// 	// 				visitType: '',
+			// 	// 				promoApplied: false,
+			// 	// 				promoAppliedMsg: '',
+			// 	// 				promotion: '',
+			// 	// 				promotionPercent: 0,
+			// 	// 				paymentMode: 'C',
+			// 	// 				phlebotomist: '',
+			// 	// 				bookType: '',
+			// 	// 				bookTime: '',
+			// 	// 				bookDate: moment(new Date()).format('YYYY-MM-DD'),
+			// 	// 			},
+			// 	// 			() => this.executeScroll()
+			// 	// 		)
+			// 	// 		this.props.history.push(PATH.BOOK_TEST)
+			// 	// 	} else {
+			// 	// 		this.props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
+			// 	// 	}
+			// 	// })
 		}
 	}
 
@@ -570,12 +647,16 @@ const BookNew = props => {
 															className='form-control border-0 p-4'
 															placeholder='Search or Add'
 															name='searchTest'
+															value={searchTestValue}
 															//value={}
 															// onChange={e => {
 															// 	this.setState({ searchTest: e.target.value })
 															// 	this.getTest(e.target.value)
 															// }}
-															onChange={e => fetchData(e.target.value)}
+															onChange={e => {
+																setSearchTestValue(e.target.value)
+																fetchData(e.target.value)
+															}}
 														/>
 														<div className='input-group-btn'>
 															<button className='btn btn-secondary' type='submit'>
@@ -672,7 +753,8 @@ const BookNew = props => {
 															disabled={bookingTypeDetails.visitType === 'W'}
 														>
 															<option value=''>Select Phlebotomist</option>
-															{bookingTypeDetails.visitType === 'H' && phlebotomistList &&
+															{bookingTypeDetails.visitType === 'H' &&
+																phlebotomistList &&
 																phlebotomistList.length &&
 																phlebotomistList.map((val, key) => {
 																	return (
@@ -1032,9 +1114,7 @@ const BookNew = props => {
 																<label className='col-form-label text-color flex-grow-1'>
 																	Sample collection charges
 																</label>
-																<div className='justify-content-end'>
-																	{selectedValue && selectedValue.length ? collectionCharges.Collection_Charge : ''}
-																</div>
+																<div className='justify-content-end'>{collectionCharges.Collection_Charge}</div>
 															</div>
 														</div>
 													</div>
@@ -1063,11 +1143,7 @@ const BookNew = props => {
 																className='ml-2'
 																style={{ float: 'right', color: promocodeStatus ? 'green' : 'red' }}
 															>
-																{promocodeStatus && selectedValue && selectedValue.length
-																	? 'Promo Applied'
-																	: selectedValue && selectedValue.length
-																	? 'Voucher Invalid!'
-																	: ''}
+																{promoMsg}
 															</span>
 														</h6>
 														<div className='form-group d-flex justify-content-between'>
@@ -1077,7 +1153,10 @@ const BookNew = props => {
 																	className='form-control bg-transparent patient-details'
 																	placeholder='Voucher Code'
 																	name='promotion'
-																	onChange={e => setPromoCode(e.target.value)}
+																	onChange={e => {
+																		setPromoCode(e.target.value)
+																		setPromoMsg('')
+																	}}
 																	value={promoCode}
 																/>
 																<span className='fa fa-times-circle closeIcon' onClick={() => removeCoupenCode()} />
@@ -1157,46 +1236,40 @@ const BookNew = props => {
 								</div>
 
 								{showConfirmation ? (
-										<div className='bg-dark  mb-4 pb-2'>
-											<div className='row p-3'>
-												<div className='col-lg-6 align-self-center'>
-													<h6 className='mb-0 text-color font-weight-bold font-weight-bold ml-3'>
-														Booking Confirmation
-													</h6>
-												</div>
-											</div>
-											<div className='pl-5'>
-												<p>
-													Your booking has been confirmed, following is your booking number : {bookingNumber}{' '}
-													{paymentmode !== 'C'
-														? ', please complete the Payment through your mobile application.'
-														: null}
-												</p>
-											</div>
-											<div className='text-center'>
-												<h6 className='mb-0 font-weight-bold'>
-													{paymentmode === 'C' ? 'Pay in Cash' : 'Pay Online'}
-												</h6>
-											</div>
-											<div className='d-flex justify-content-center align-items-center'>
-												<div className='amount-paid p-2 my-3 text-white'>Amount to be paid</div>
-												<div className='patient-details p-2 my-4 bg-blue'>
-													<ul className='list-group list-group-horizontal patient-name'>
-														{/* <li className='text-white'>Rs. {this.state.amountToPay}</li> */}
-													</ul>
-												</div>
-											</div>
-											<div className='d-flex justify-content-end mr-4 mb-3'>
-												<button
-													ref={myRef}
-													className='btn btn-sm btn-secondary'
-													onClick={() => props.history.push(PATH.BOOK_TEST)}
-												>
-													Go Back
-												</button>
+									<div className='bg-dark  mb-4 pb-2'>
+										<div className='row p-3'>
+											<div className='col-lg-6 align-self-center'>
+												<h6 className='mb-0 text-color font-weight-bold font-weight-bold ml-3'>Booking Confirmation</h6>
 											</div>
 										</div>
-									) : null}
+										<div className='pl-5'>
+											<p>
+												Your booking has been confirmed, following is your booking number : {bookingNumber}{' '}
+												{paymentmode !== 'C' ? ', please complete the Payment through your mobile application.' : null}
+											</p>
+										</div>
+										<div className='text-center'>
+											<h6 className='mb-0 font-weight-bold'>{paymentmode === 'C' ? 'Pay in Cash' : 'Pay Online'}</h6>
+										</div>
+										<div className='d-flex justify-content-center align-items-center'>
+											<div className='amount-paid p-2 my-3 text-white'>Amount to be paid</div>
+											<div className='patient-details p-2 my-4 bg-blue'>
+												<ul className='list-group list-group-horizontal patient-name'>
+													{/* <li className='text-white'>Rs. {this.state.amountToPay}</li> */}
+												</ul>
+											</div>
+										</div>
+										<div className='d-flex justify-content-end mr-4 mb-3'>
+											<button
+												ref={myRef}
+												className='btn btn-sm btn-secondary'
+												onClick={() => props.history.push(PATH.BOOK_TEST)}
+											>
+												Go Back
+											</button>
+										</div>
+									</div>
+								) : null}
 
 								{/* already commented section <div className='bg-dark mb-4'>
 										<div className='row p-3'>

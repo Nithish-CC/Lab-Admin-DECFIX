@@ -13,7 +13,7 @@ import {
 } from '../../actions/bookingDetailsAction'
 import { showNotification } from '../../actions/commonAction'
 import store from 'store'
-import ViewModal from './modal/View'
+import ViewModal2 from './modal/View2'
 import CancelModal from './modal/Cancel'
 import { Spinner } from 'reactstrap'
 import { getLabadminCode } from '../../utils/Utility'
@@ -130,7 +130,7 @@ class BookingDetails extends Component {
 		return (
 			<div className='main-content overflow-auto pb-3'>
 				{showViewModal && (
-					<ViewModal
+					<ViewModal2
 						bookingDetail={this.props.bookingDetails}
 						phlebotomistList={this.props.phlebotomistList}
 						visitType={this.props.bookingTypeList}

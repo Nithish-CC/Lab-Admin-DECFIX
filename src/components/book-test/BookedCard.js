@@ -51,7 +51,7 @@ const BookedCard = props => {
 								className='text-white'
 								to={{
 									pathname: PATH.BOOK_TEST_BOOK,
-									//pathname : '/book-test/BookNewone',
+									//pathname: '/book-test/BookNewone',
 									state: {
 										patientCode: props.Pt_Code,
 										User_Login_Name: props.User_Login_Name,

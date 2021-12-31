@@ -790,9 +790,9 @@ class BookNewone extends Component {
 																				return (
 																					<li key={i}>
 																						{/* <span onClick={() => this.addService(item.Service_Code, item.Amount)}>
-																							<i
-																								className='fal fa-plus'
-
+																							<i 
+																								className='fal fa-plus' 
+																								
 																							/>
 																						</span> */}
 																						<button

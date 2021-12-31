@@ -65,7 +65,7 @@ class App extends Component {
 								<PrivateRoute path={PATH.NOTIFICATIONS} exact component={Notification} />
 								<PrivateRoute path={PATH.SOS_ALERT} exact component={SosAlert} />
 								<PrivateRoute path={PATH.RATING} exact component={Rating} />
-								<PrivateRoute path="/book-test/BookNewone" component={BookNewone}/>
+								<PrivateRoute path='/book-test/BookNewone' component={BookNewone} />
 								{/* <PrivateRoute exact component={NotFoundScreen} /> */}
 							</Switch>
 						</React.Fragment>
