@@ -85,11 +85,13 @@ const BookNew = props => {
 	const [hasError, setHasError] = useState(false)
 	const [showConfirmation, setShowConfirmation] = useState(false)
 	const [bookingNumber, setBookingNumber] = useState(0)
+	const [visitTypeSelected, setVisitTypeSelected] = useState('')
+
 	useEffect(() => {
 		props.patientUserList &&
 			props.patientUserList.length &&
 			props.patientUserList.forEach(values => {
-				if (values.RelationShip_Name == 'Self') {
+				if (values.Pt_Code == patientCode) {
 					setDetfaultPatientLogin(values)
 				}
 			})
@@ -110,7 +112,7 @@ const BookNew = props => {
 	//Get Patient Details
 	useEffect(() => {
 		props.getPatientDetails(getPatient, result => {
-			if (result) console.log(result)
+			if (result) console.log('')
 		})
 	}, [getPatient])
 
@@ -128,14 +130,15 @@ const BookNew = props => {
 			Type_Of_Booking: 'H',
 			Date_Of_Booking: moment(new Date()).format('YYYY/MM/DD'),
 		}
+		setVisitTypeSelected(slotData.Type_Of_Booking)
 		props.bookingSlotDaywise(slotData, result => {
 			//this.setState({ showLoading: false })
 			if (result && result.Code === 200) {
 				setSlotTime(result.Message[0].Slot_Detail)
 				if (slotData.Type_Of_Booking === 'H') {
-					console.log(result.Message[0].Slot_Detail)
+					console.log('')
 				} else {
-					console.log(result.Message[0])
+					console.log('')
 				}
 			} else {
 				console.log('')
@@ -143,7 +146,7 @@ const BookNew = props => {
 		})
 		//To Get PhlebotomistDetails
 		props.getPhlebotomistDetails({}, result => {
-			if (result) console.log(result)
+			if (result) console.log('')
 		})
 	}, [])
 
@@ -166,6 +169,7 @@ const BookNew = props => {
 
 	// Get Patient Details
 	useEffect(() => {
+		console.log('')
 		if (patientList && patientList.length) {
 			const getPatientList = {
 				Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
@@ -205,14 +209,14 @@ const BookNew = props => {
 		}
 		props.getTestDetails(searchData, result => {
 			if (result) {
-				console.log(result)
+				console.log('')
 			}
 		})
 	}
 
 	//Add new Test data
 	const addService = (item, i) => {
-		console.log(item)
+		console.log('')
 		const found = selectedValue.find(element => element.Service_Code == item.Service_Code)
 		if (found == undefined) {
 			setSelectedValue([...selectedValue, item])
@@ -232,9 +236,15 @@ const BookNew = props => {
 		setSelectedValue([...newSelectedVal])
 	}
 
+	//Recall Selected Values
+	const recallValues = () => {
+		let tempSelected = selectedValue
+		setSelectedValue([...tempSelected])
+	}
+
 	//Sample Collection Charges
 	const sampleCollectionCharges = sum => {
-		console.log(bookingTypeDetails)
+		console.log('')
 		if (bookingTypeDetails.visitType === 'W') {
 			setCollectionCharges({ Collection_Charge: 0 })
 			settotalValues(sum + 0)
@@ -247,8 +257,9 @@ const BookNew = props => {
 				},
 				(success, data) => {
 					if (success) {
-						setCollectionCharges(data)
+						setCollectionCharges({ Collection_Charge: data.Collection_Charge })
 						settotalValues(sum + data.Collection_Charge)
+						//recallValues()
 					}
 				}
 			)
@@ -364,9 +375,9 @@ const BookNew = props => {
 			if (result.Code === 200) {
 				setSlotTime(result.Message[0].Slot_Detail)
 				if (slotData.Type_Of_Booking === 'H') {
-					console.log(result.Message[0].Slot_Detail)
+					console.log('')
 				} else {
-					console.log(result.Message[0])
+					console.log('')
 				}
 			} else {
 				console.log('')
@@ -386,16 +397,61 @@ const BookNew = props => {
 		// if (code === 'W') {
 		// 	this.setState({ phlebotomist: '' })
 		// }
+		//alert(code)
+		setVisitTypeSelected(code)
 		setBookingSlot(moment(new Date()).format('YYYY-MM-DD'))
 		settimeSlotSelected('')
 		removeCoupenCode()
 		setSelectedPhlebotomistList('')
-		alert(code)
 		setBookingTypeDetails({
 			minDate: moment(startDate).format('YYYY-MM-DD'),
 			maxDate: moment(endDate).format('YYYY-MM-DD'),
 			visitType: code,
 		})
+		props.getCollectionCharges(
+			{
+				Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
+				Bill_Amount: promocodeStatus ? amountWithDisCount : amountWithoutDisCount,
+				Pt_Code: getPatient.Pt_Code,
+			},
+			(success, data) => {
+				console.log('')
+				if (success) {
+					if (bookingTypeDetails.visitType === 'H') {
+						setCollectionCharges({ Collection_Charge: data.Collection_Charge })
+					} else {
+						setCollectionCharges({ Collection_Charge: 0 })
+						//this.setState({ collectionCharges: 0 })
+					}
+					console.log('')
+					if (data.Promo_Code && data.Promo_Code.trim() !== '' && code === 'W') {
+						// this.setState({ promotion: data.Promo_Code }, () => {
+						// 	const serviceTotalDis =
+						// 		this.state.serviceTotal - this.state.serviceTotal * (data.Discount_In_Percent / 100)
+						// 	this.setState({
+						// 		promoApplied: true,
+						// 		promotionSelected: this.state.promotion,
+						// 		promoAppliedMsg: 'Promo Applied',
+						// 		promotionPercent: data.Discount_In_Percent,
+						// 		serviceTotalDis,
+						// 	})
+						// })
+						setPromoCodeStatus(true)
+						setPromoCodeDetails(data)
+						setPromoCode(data.Promo_Code)
+						setPromoLoader(false)
+						setPromoMsg('Promo Applied')
+					} else {
+						removeCoupenCode()
+						recallValues()
+					}
+				}
+			}
+		)
+	}
+
+	useEffect(() => {
+		removeCoupenCode()
 		props.getCollectionCharges(
 			{
 				Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
@@ -409,42 +465,25 @@ const BookNew = props => {
 						setCollectionCharges({ Collection_Charge: data.Collection_Charge })
 					} else {
 						setCollectionCharges({ Collection_Charge: 0 })
-						//this.setState({ collectionCharges: 0 })
 					}
-					console.log(data.Promo_Code && data.Promo_Code.trim() !== '' && code == 'W')
-					if (data.Promo_Code && data.Promo_Code.trim() !== '' && code === 'W') {
-						// this.setState({ promotion: data.Promo_Code }, () => {
-						// 	const serviceTotalDis =
-						// 		this.state.serviceTotal - this.state.serviceTotal * (data.Discount_In_Percent / 100)
-						// 	this.setState({
-						// 		promoApplied: true,
-						// 		promotionSelected: this.state.promotion,
-						// 		promoAppliedMsg: 'Promo Applied',
-						// 		promotionPercent: data.Discount_In_Percent,
-						// 		serviceTotalDis,
-						// 	})
-						// })
-						alert(data.Promo_Code)
+					console.log('')
+					if (data.Promo_Code && data.Promo_Code.trim() !== '' && visitTypeSelected === 'W') {
 						setPromoCodeStatus(true)
 						setPromoCodeDetails(data)
 						setPromoCode(data.Promo_Code)
+						setPromoLoader(false)
+						setPromoMsg('Promo Applied')
 					} else {
 						removeCoupenCode()
-						// this.setState({
-						// 	promoApplied: false,
-						// 	promotion: '',
-						// 	promoAppliedMsg: '',
-						// 	promotionPercent: 0,
-						// 	promotionSelected: '',
-						// })
+						recallValues()
 					}
 				}
 			}
 		)
-	}
+	}, [getPatient])
 
 	const setUserListData = (code, name, age, relationship, gender, mobile) => {
-		setSelectedPtCode({ selectedPtCode: patientCode })
+		setSelectedPtCode({ selectedPtCode: code })
 		setChoosePatient({ userListData: { name, age, relationship, gender } })
 		const getPatientList = {
 			Labadmin_Code: store.get('userSession').Message[0].Labadmin_Code,
@@ -457,10 +496,8 @@ const BookNew = props => {
 				Pt_Code: code,
 			})
 			if (result) {
-				// setSelectedAddressType(
-				// 	props.patientAddressList[0].Address_Type_Code,
-				//    )
 				console.log('k')
+				//alert('k')
 			} else {
 				console.log('')
 			}
@@ -469,12 +506,12 @@ const BookNew = props => {
 
 	const addBookTest = () => {
 		let arrService = []
-		console.log(selectedValue)
+		console.log('')
 		selectedValue.forEach(item => {
 			arrService.push({
 				Service_Code: item.Service_Code,
 				Service_Amount: item.Amount,
-				Service_Suppress_Discount : item.Suppress_Discount,
+				Service_Suppress_Discount: item.Suppress_Discount,
 				Service_Discount:
 					item.Suppress_Discount === false && promocodeDetails.Offer_Percentage
 						? (item.Amount * promocodeDetails.Offer_Percentage) / 100
@@ -513,7 +550,7 @@ const BookNew = props => {
 				Promo_Code: promocodeDetails.Coupon_Code,
 				Collector_Code: selectedPhlebotomistList,
 			}
-			console.log(searchData)
+			console.log('')
 			props.bookTest(searchData, result => {
 				if (result.SuccessFlag === 'true') {
 					console.log('success')
@@ -607,6 +644,11 @@ const BookNew = props => {
 	const handlePayment = e => {
 		setPaymentMode(e)
 	}
+
+	useEffect(() => {
+		//const [selectedPtCode, setSelectedPtCode] = useState({ selectedPtCode: patientCode })
+		//alert(selectedPtCode.selectedPtCode)
+	}, [selectedPtCode])
 
 	return (
 		<>
@@ -1114,7 +1156,11 @@ const BookNew = props => {
 																<label className='col-form-label text-color flex-grow-1'>
 																	Sample collection charges
 																</label>
-																<div className='justify-content-end'>{collectionCharges.Collection_Charge}</div>
+																<div className='justify-content-end'>
+																	{Object.keys(collectionCharges).length && collectionCharges.Collection_Charge > 0
+																		? collectionCharges.Collection_Charge
+																		: 0}
+																</div>
 															</div>
 														</div>
 													</div>

@@ -21,6 +21,7 @@ import searchTestApiCall from './searchTestapi'
 import './style.css'
 
 const ViewModal2 = props => {
+	console.log(props)
 	const [bookingDetail, setBookDetail] = useState({})
 	const [phlebotomistList, setPhlebotomistList] = useState([])
 	const [selectedPhlebotomistList, setSelectedPhlebotomistList] = useState('')
@@ -50,7 +51,7 @@ const ViewModal2 = props => {
 	const [hasError, setHasError] = useState(false)
 	const [invoiceLoading, setInvoiceLoading] = useState(false)
 	const [searchTestvalue, setSearchTestValue] = useState('')
-	const [promoMsg,setPromoMsg]=useState('')
+	const [promoMsg, setPromoMsg] = useState('')
 
 	useEffect(() => {
 		const getTest = newValue => {
@@ -72,6 +73,7 @@ const ViewModal2 = props => {
 			console.log(props)
 			setBookDetail(props.bookingDetail)
 			setPhlebotomistList(props.phlebotomistList)
+			setSelectedPhlebotomistList(props.bookingDetail.Collector_Code)
 			//To have intial selected test
 			setServiceDetail(props.bookingDetail.Service_Detail)
 			setPromoCode(props.bookingDetail.Promo_Code)
@@ -493,13 +495,14 @@ const ViewModal2 = props => {
 												? selectedValue.map((values, key) => {
 														return (
 															<tr key={key}>
-																{console.log(promocodeStatus,values.Service_Discount,)}
+																{console.log(promocodeStatus, values.Service_Discount)}
 																<td>{values.Service_Name}</td>
 																<td>
 																	{promocodeStatus && values.Service_Discount >= 0
 																		? values.Service_Discount
-																		: values.Suppress_Discount == false && promocodeStatus ?
-																		  (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100 : ''}
+																		: values.Suppress_Discount == false && promocodeStatus
+																		? (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100
+																		: ''}
 																</td>
 																<td>
 																	{values.Amount > 0 && selectedValue && selectedValue.length
@@ -547,6 +550,7 @@ const ViewModal2 = props => {
 												id='filter'
 												placeholder='Select'
 												name='selectedPhlebotomist'
+												value={selectedPhlebotomistList}
 												onChange={e => setSelectedPhlebotomistList(e.target.value)}
 											>
 												<option value=''>Select Phlebotomist</option>
