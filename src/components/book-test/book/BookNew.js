@@ -268,6 +268,10 @@ const BookNew = props => {
 
 	//Calculate Amount
 	useEffect(() => {
+		if(selectedValue && selectedValue<=0){
+			setCollectionCharges({ Collection_Charge: 0 })
+		}
+
 		//alert(promoCode)
 		if (promoCode == '' || promoCode == null) {
 			let sum = 0
@@ -330,7 +334,7 @@ const BookNew = props => {
 		const promotionData = {
 			Labadmin_Code: getPatient.Labadmin_Code,
 			Username: patientList && patientList.length && patientList[0].Mobile_No,
-			Promo_Code: promoCode,
+			Promo_Code: promoCode.toLowerCase(),
 		}
 		props.getPromotiontApplyDetails(promotionData, result => {
 			if (result.SuccessFlag === 'true') {
@@ -339,6 +343,7 @@ const BookNew = props => {
 				setPromoCode(result.Message[0].Coupon_Code)
 				setPromoLoader(false)
 				setPromoMsg('Promo Applied')
+				recallValues()
 			} else if (result.SuccessFlag === 'false') {
 				setPromoCodeStatus(false)
 				setPromoLoader(false)
@@ -353,6 +358,7 @@ const BookNew = props => {
 					Offer_Times: 0,
 					Validity_ToDate: '',
 				})
+				recallValues()
 				setPromoCodeStatus(false)
 			}
 		})
@@ -441,6 +447,7 @@ const BookNew = props => {
 						setPromoCode(data.Promo_Code)
 						setPromoLoader(false)
 						setPromoMsg('Promo Applied')
+						recallValues()
 					} else {
 						removeCoupenCode()
 						recallValues()
@@ -1180,7 +1187,7 @@ const BookNew = props => {
 											</div>
 										</div>
 										<div className=' d-flex col-lg-6 col-md-12  col-sm-12 mob-width'>
-											<div className='row'>
+										{selectedValue && selectedValue.length ? (<div className='row'>
 												<div className='col-10'>
 													<div className='visit-edit'>
 														<h6 className='text-color mb-3'>
@@ -1204,6 +1211,7 @@ const BookNew = props => {
 																		setPromoMsg('')
 																	}}
 																	value={promoCode}
+																	disabled={promocodeStatus}
 																/>
 																<span className='fa fa-times-circle closeIcon' onClick={() => removeCoupenCode()} />
 																<InputGroupAddon addonType='append'>
@@ -1252,7 +1260,7 @@ const BookNew = props => {
 														</div>
 													</div>
 												</div>
-											</div>
+											</div>): ''}	
 										</div>
 									</div>
 									{/* {!this.state.showConfirmation ? (

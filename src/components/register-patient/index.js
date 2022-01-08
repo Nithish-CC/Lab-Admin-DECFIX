@@ -190,6 +190,7 @@ class RegisterPatient extends Component {
 				state: '',
 				landMark: '',
 				linkCode: '',
+				patientSelected: false,
 			})
 		}
 	}
