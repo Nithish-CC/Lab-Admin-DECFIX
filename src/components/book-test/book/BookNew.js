@@ -268,8 +268,9 @@ const BookNew = props => {
 
 	//Calculate Amount
 	useEffect(() => {
-		if(selectedValue && selectedValue<=0){
+		if (selectedValue && selectedValue <= 0) {
 			setCollectionCharges({ Collection_Charge: 0 })
+			removeCoupenCode()
 		}
 
 		//alert(promoCode)
@@ -334,7 +335,7 @@ const BookNew = props => {
 		const promotionData = {
 			Labadmin_Code: getPatient.Labadmin_Code,
 			Username: patientList && patientList.length && patientList[0].Mobile_No,
-			Promo_Code: promoCode.toLowerCase(),
+			Promo_Code: promoCode.trim(),
 		}
 		props.getPromotiontApplyDetails(promotionData, result => {
 			if (result.SuccessFlag === 'true') {
@@ -1187,80 +1188,84 @@ const BookNew = props => {
 											</div>
 										</div>
 										<div className=' d-flex col-lg-6 col-md-12  col-sm-12 mob-width'>
-										{selectedValue && selectedValue.length ? (<div className='row'>
-												<div className='col-10'>
-													<div className='visit-edit'>
-														<h6 className='text-color mb-3'>
-															Voucher Code{' '}
-															<span
-																className='ml-2'
-																style={{ float: 'right', color: promocodeStatus ? 'green' : 'red' }}
-															>
-																{promoMsg}
-															</span>
-														</h6>
-														<div className='form-group d-flex justify-content-between'>
-															<InputGroup>
-																<input
-																	type='text'
-																	className='form-control bg-transparent patient-details'
-																	placeholder='Voucher Code'
-																	name='promotion'
-																	onChange={e => {
-																		setPromoCode(e.target.value)
-																		setPromoMsg('')
-																	}}
-																	value={promoCode}
-																	disabled={promocodeStatus}
-																/>
-																<span className='fa fa-times-circle closeIcon' onClick={() => removeCoupenCode()} />
-																<InputGroupAddon addonType='append'>
-																	<Button color='secondary' disabled={promoloader} onClick={() => checkForCoupon()}>
-																		Apply &nbsp;{promoloader ? <Spinner size='sm' className='ml-2 m-1' /> : <></>}
-																	</Button>
-																</InputGroupAddon>
-															</InputGroup>
+											{selectedValue && selectedValue.length ? (
+												<div className='row'>
+													<div className='col-10'>
+														<div className='visit-edit'>
+															<h6 className='text-color mb-3'>
+																Voucher Code{' '}
+																<span
+																	className='ml-2'
+																	style={{ float: 'right', color: promocodeStatus ? 'green' : 'red' }}
+																>
+																	{promoMsg}
+																</span>
+															</h6>
+															<div className='form-group d-flex justify-content-between'>
+																<InputGroup>
+																	<input
+																		type='text'
+																		className='form-control bg-transparent patient-details'
+																		placeholder='Voucher Code'
+																		name='promotion'
+																		onChange={e => {
+																			setPromoCode(e.target.value)
+																			setPromoMsg('')
+																		}}
+																		value={promoCode}
+																		disabled={promocodeStatus}
+																	/>
+																	<span className='fa fa-times-circle closeIcon' onClick={() => removeCoupenCode()} />
+																	<InputGroupAddon addonType='append'>
+																		<Button color='secondary' disabled={promoloader} onClick={() => checkForCoupon()}>
+																			Apply &nbsp;{promoloader ? <Spinner size='sm' className='ml-2 m-1' /> : <></>}
+																		</Button>
+																	</InputGroupAddon>
+																</InputGroup>
+															</div>
 														</div>
 													</div>
-												</div>
-												<div className='col-10'>
-													<div className='Vist-type mb-lg-0 mb-md-3 mb-3'>
-														<div className=' '>
-															<h6 className='text-color mb-3'>Payment Mode</h6>
-															<div className='form-control res-width'>
-																<div className='form-check form-check-inline'>
-																	<input
-																		className='form-check-input'
-																		type='radio'
-																		name='paymentMode'
-																		id='paymentModeCash'
-																		defaultChecked={paymentmode === 'C'}
-																		onChange={e => handlePayment(e.target.value)}
-																		value='C'
-																	/>
-																	<label className='form-check-label text-black' htmlFor='paymentModeCash'>
-																		Cash
-																	</label>
-																</div>
-																<div className='form-check form-check-inline'>
-																	<input
-																		className='form-check-input'
-																		type='radio'
-																		name='paymentMode'
-																		id='paymentModeOnline'
-																		defaultChecked={paymentmode === 'O'}
-																		onChange={e => handlePayment(e.target.value)}
-																		value='O'
-																	/>
-																	<label className='form-check-label text-black' htmlFor='paymentModeOnline'>
-																		Online
-																	</label>
+													<div className='col-10'>
+														<div className='Vist-type mb-lg-0 mb-md-3 mb-3'>
+															<div className=' '>
+																<h6 className='text-color mb-3'>Payment Mode</h6>
+																<div className='form-control res-width'>
+																	<div className='form-check form-check-inline'>
+																		<input
+																			className='form-check-input'
+																			type='radio'
+																			name='paymentMode'
+																			id='paymentModeCash'
+																			defaultChecked={paymentmode === 'C'}
+																			onChange={e => handlePayment(e.target.value)}
+																			value='C'
+																		/>
+																		<label className='form-check-label text-black' htmlFor='paymentModeCash'>
+																			Cash
+																		</label>
+																	</div>
+																	<div className='form-check form-check-inline'>
+																		<input
+																			className='form-check-input'
+																			type='radio'
+																			name='paymentMode'
+																			id='paymentModeOnline'
+																			defaultChecked={paymentmode === 'O'}
+																			onChange={e => handlePayment(e.target.value)}
+																			value='O'
+																		/>
+																		<label className='form-check-label text-black' htmlFor='paymentModeOnline'>
+																			Online
+																		</label>
+																	</div>
 																</div>
 															</div>
 														</div>
 													</div>
 												</div>
-											</div>): ''}	
+											) : (
+												''
+											)}
 										</div>
 									</div>
 									{/* {!this.state.showConfirmation ? (

@@ -191,6 +191,7 @@ class RegisterPatient extends Component {
 				landMark: '',
 				linkCode: '',
 				patientSelected: false,
+				code: '',
 			})
 		}
 	}
