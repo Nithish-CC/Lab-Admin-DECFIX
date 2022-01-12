@@ -87,11 +87,13 @@ const BookNew = props => {
 	const [bookingNumber, setBookingNumber] = useState(0)
 	const [visitTypeSelected, setVisitTypeSelected] = useState('')
 
+	console.log(promocodeDetails)
+
 	useEffect(() => {
 		props.patientUserList &&
 			props.patientUserList.length &&
 			props.patientUserList.forEach(values => {
-				if (values.Pt_Code == patientCode) {
+				if (values.Pt_Code == patientList[0].Patient_ID) {
 					setDetfaultPatientLogin(values)
 				}
 			})
@@ -223,6 +225,9 @@ const BookNew = props => {
 			setSearchTestValue('')
 			let newSelectedVal = props.testList
 			newSelectedVal.splice(i, 1)
+			if (promocodeStatus == false) {
+				setPromoCode('')
+			}
 		} else {
 			setSearchTestValue('')
 			props.showNotification('Error', 'Test Exsists', TOAST.TYPE_ERROR)
@@ -268,11 +273,11 @@ const BookNew = props => {
 
 	//Calculate Amount
 	useEffect(() => {
-		if (selectedValue && selectedValue <= 0) {
+		if (selectedValue && selectedValue.length <= 0) {
 			setCollectionCharges({ Collection_Charge: 0 })
+			setVisitTypeSelected('H')
 			removeCoupenCode()
 		}
-
 		//alert(promoCode)
 		if (promoCode == '' || promoCode == null) {
 			let sum = 0
@@ -432,17 +437,6 @@ const BookNew = props => {
 					}
 					console.log('')
 					if (data.Promo_Code && data.Promo_Code.trim() !== '' && code === 'W') {
-						// this.setState({ promotion: data.Promo_Code }, () => {
-						// 	const serviceTotalDis =
-						// 		this.state.serviceTotal - this.state.serviceTotal * (data.Discount_In_Percent / 100)
-						// 	this.setState({
-						// 		promoApplied: true,
-						// 		promotionSelected: this.state.promotion,
-						// 		promoAppliedMsg: 'Promo Applied',
-						// 		promotionPercent: data.Discount_In_Percent,
-						// 		serviceTotalDis,
-						// 	})
-						// })
 						setPromoCodeStatus(true)
 						setPromoCodeDetails(data)
 						setPromoCode(data.Promo_Code)
@@ -467,7 +461,7 @@ const BookNew = props => {
 				Pt_Code: getPatient.Pt_Code,
 			},
 			(success, data) => {
-				console.log(data)
+				//console.log(data)
 				if (success) {
 					if (bookingTypeDetails.visitType === 'H') {
 						setCollectionCharges({ Collection_Charge: data.Collection_Charge })
@@ -512,6 +506,11 @@ const BookNew = props => {
 		})
 	}
 
+	const finalCouponCode = () => {
+		let finalPromo = promocodeDetails.Coupon_Code ? promocodeDetails.Coupon_Code : promocodeDetails.Promo_Code
+		return finalPromo
+	}
+
 	const addBookTest = () => {
 		let arrService = []
 		console.log('')
@@ -523,6 +522,8 @@ const BookNew = props => {
 				Service_Discount:
 					item.Suppress_Discount === false && promocodeDetails.Offer_Percentage
 						? (item.Amount * promocodeDetails.Offer_Percentage) / 100
+						: promocodeDetails.Discount_In_Percent
+						? (item.Amount * promocodeDetails.Discount_In_Percent) / 100
 						: 0,
 			})
 		})
@@ -555,7 +556,7 @@ const BookNew = props => {
 				Address_Type: addressListData,
 				Service_Reg_Data: arrService,
 				Pay_Mode: paymentmode,
-				Promo_Code: promocodeDetails.Coupon_Code,
+				Promo_Code: finalCouponCode(),
 				Collector_Code: selectedPhlebotomistList,
 			}
 			console.log('')
@@ -604,40 +605,6 @@ const BookNew = props => {
 					props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
 				}
 			})
-			// 	// this.props.bookTest(searchData, result => {
-			// 	// 	this.setState({ showLoading: false })
-			// 	// 	if (result.SuccessFlag === 'true') {
-			// 	// 		this.props.showNotification('Success', result.Message && result.Message[0].Description, TOAST.TYPE_SUCCESS)
-			// 	// 		this.setState(
-			// 	// 			{
-			// 	// 				showConfirmation: true,
-			// 	// 				bookingNumber: result.Message[0].Booking_No,
-			// 	// 				userListData: {},
-			// 	// 				userData: {},
-			// 	// 				maxDate: '',
-			// 	// 				serviceTotal: 0,
-			// 	// 				collectionCharges: 0,
-			// 	// 				service: [],
-			// 	// 				minDate: '',
-			// 	// 				promotionSelected: '',
-			// 	// 				visitType: '',
-			// 	// 				promoApplied: false,
-			// 	// 				promoAppliedMsg: '',
-			// 	// 				promotion: '',
-			// 	// 				promotionPercent: 0,
-			// 	// 				paymentMode: 'C',
-			// 	// 				phlebotomist: '',
-			// 	// 				bookType: '',
-			// 	// 				bookTime: '',
-			// 	// 				bookDate: moment(new Date()).format('YYYY-MM-DD'),
-			// 	// 			},
-			// 	// 			() => this.executeScroll()
-			// 	// 		)
-			// 	// 		this.props.history.push(PATH.BOOK_TEST)
-			// 	// 	} else {
-			// 	// 		this.props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
-			// 	// 	}
-			// 	// })
 		}
 	}
 
@@ -840,53 +807,41 @@ const BookNew = props => {
 											<div className='Vist-type'>
 												<div className=' '>
 													<h6 className='text-color mb-3 font-weight-bold'>Visit type</h6>
-													<div className='form-control res-width w-50'>
-														{bookingTypeList &&
-															bookingTypeList.length &&
-															bookingTypeList.map((item, i) => {
-																// Remove Direct Visit Type
-																if (item.Booking_Type_Code !== 'L') {
-																	return (
-																		<div className='form-check form-check-inline' key={i}>
-																			{/* <input
-																			className='form-check-input mr-0'
-																			type='radio'
-																			name='bookType'
-																			id={item.Booking_Type_Code}
-																			//checked={item.Booking_Type_Code === bookingTypeDetails.visitType}
-																			//defaultChecked={item.Booking_Type_Code === bookingTypeDetails.visitType}
-																			onChange={() =>
-																				visitTypeChange(
-																					item.Booking_Type_Code,
-																					item.Slot_Start_Date,
-																					item.Slot_End_Date
-																				)
-																			}
-																		/> */}
-
-																			<input
-																				className='form-check-input mr-0'
-																				type='radio'
-																				name='bookType'
-																				id={item.Booking_Type_Code}
-																				//checked={item.Pt_Code === selectedPtCode}
-																				defaultChecked={item.Booking_Type_Code === 'H'}
-																				onChange={() => {
-																					visitTypeChange(
-																						item.Booking_Type_Code,
-																						item.Slot_Start_Date,
-																						item.Slot_End_Date
-																					)
-																				}}
-																			/>
-																			<label className='form-check-label text-black' htmlFor={item.Booking_Type_Code}>
-																				{item.Type_Of_Booking}
-																			</label>
-																		</div>
-																	)
-																}
-															})}
-													</div>
+													{selectedValue && selectedValue.length ? (
+														<div className='form-control res-width w-50'>
+															{bookingTypeList &&
+																bookingTypeList.length &&
+																bookingTypeList.map((item, i) => {
+																	// Remove Direct Visit Type
+																	if (item.Booking_Type_Code !== 'L') {
+																		return (
+																			<div className='form-check form-check-inline' key={i}>
+																				<input
+																					className='form-check-input mr-0'
+																					type='radio'
+																					name='bookType'
+																					id={item.Booking_Type_Code}
+																					//checked={visitTypeSelected}
+																					defaultChecked={item.Booking_Type_Code === 'H'}
+																					onChange={() => {
+																						visitTypeChange(
+																							item.Booking_Type_Code,
+																							item.Slot_Start_Date,
+																							item.Slot_End_Date
+																						)
+																					}}
+																				/>
+																				<label className='form-check-label text-black' htmlFor={item.Booking_Type_Code}>
+																					{item.Type_Of_Booking}
+																				</label>
+																			</div>
+																		)
+																	}
+																})}
+														</div>
+													) : (
+														''
+													)}
 												</div>
 											</div>
 										</div>
@@ -1126,6 +1081,8 @@ const BookNew = props => {
 																	return (
 																		<div className='col-sm-12' key={i}>
 																			<div className='d-flex list-inline'>
+																				{values.Suppress_Discount==true ?<span style={{color:'red'}}>*</span>:'' }
+																				
 																				<label className='flex-grow-1 text-color'>{values.Service_Name}</label>
 																				<div className='justify-content-end'>
 																					<p className='mb-0 text-color'>{values.Amount}</p>
@@ -1179,6 +1136,16 @@ const BookNew = props => {
 																<div className='justify-content-end'>
 																	<p className='mb-0 text-color text-success'>
 																		{selectedValue && selectedValue.length && totalValues.toFixed(2)}
+																	</p>
+																</div>
+															</div>
+														</div>
+														<div className='col-sm-12'>
+															<div className='d-flex list-inline mt-4'>
+																<label className='col-form-label flex-grow-1'><h6>NOTE : <span style={{color:'red'}}>* - Indicates Non Discounted Test</span></h6></label>
+																<div className='justify-content-end'>
+																	<p className='mb-0 text-color text-success'>
+																		
 																	</p>
 																</div>
 															</div>
@@ -1280,6 +1247,8 @@ const BookNew = props => {
 											</button>
 										</div>
 									) : null} */}
+
+
 									{!showConfirmation ? (
 										<div className='d-flex justify-content-end mr-4 my-5'>
 											<button

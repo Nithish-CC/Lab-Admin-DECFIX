@@ -51,6 +51,7 @@ class RegisterPatient extends Component {
 			Pt_Code: 0,
 			code: '',
 			patientSelected: false,
+			otpVerified: false,
 		}
 	}
 
@@ -197,6 +198,7 @@ class RegisterPatient extends Component {
 	}
 
 	promiseOptions = inputValue => {
+		this.setState({ code: '' })
 		if (inputValue) {
 			return new Promise(resolve => {
 				this.props.searchPatients({ Labadmin_Code: getLabadminCode(), Mobile_No: inputValue }, (success, data) => {
@@ -255,6 +257,9 @@ class RegisterPatient extends Component {
 		) {
 			this.setState({ hasError: true })
 			this.props.showNotification('Error', 'Please fill out mandatory fields.', TOAST.TYPE_ERROR)
+		} else if (this.state.patientSelected == true && this.state.otpVerified == false) {
+			this.setState({ hasError: true })
+			this.props.showNotification('Error', 'Please verify the OTP.', TOAST.TYPE_ERROR)
 		} else {
 			this.setState({ showLoading: true })
 			this.props.addPatient(data, result => {
@@ -283,7 +288,9 @@ class RegisterPatient extends Component {
 						selectPatientMobileNumber: '',
 					})
 					this.props.showNotification('Success', 'Patient added successfully', TOAST.TYPE_SUCCESS)
-					window.location.reload()
+					setTimeout(() => {
+						window.location.reload()
+					  }, 5000);
 				} else {
 					this.props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
 				}
@@ -322,11 +329,15 @@ class RegisterPatient extends Component {
 				console.log(store.get('otp').Message[0].OtpCode)
 				if (this.state.code === store.get('otp').Message[0].OtpCode) {
 					this.props.showNotification('Success', 'OTP Successfully verified', TOAST.TYPE_SUCCESS)
+					this.setState({ otpVerified: true })
 					this.setState({ code: '' })
 					this.setState({ patientSelected: false })
 					store.remove('otp')
 				} else {
 					this.props.showNotification('Error', 'Invalid OTP', TOAST.TYPE_ERROR)
+					this.setState({ otpVerified: false })
+					this.setState({ code: '' })
+					this.setState({ patientSelected: true })
 				}
 			}
 		})

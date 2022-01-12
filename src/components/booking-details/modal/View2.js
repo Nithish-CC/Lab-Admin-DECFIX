@@ -70,14 +70,18 @@ const ViewModal2 = props => {
 		}
 		getTest('a')
 		if (Object.keys(props).length) {
-			console.log(props)
+			//console.log(props)
 			setBookDetail(props.bookingDetail)
 			setPhlebotomistList(props.phlebotomistList)
 			setSelectedPhlebotomistList(props.bookingDetail.Collector_Code)
 			//To have intial selected test
 			setServiceDetail(props.bookingDetail.Service_Detail)
 			setPromoCode(props.bookingDetail.Promo_Code)
-			setSelectedValue(props.bookingDetail.Service_Detail)
+			if (props.bookingDetail.Service_Detail && props.bookingDetail.Service_Detail.length) {
+				setSelectedValue(props.bookingDetail.Service_Detail)
+			} else {
+				setSelectedValue([])
+			}
 			setPromoCodeDetails({
 				Promo_Code: props.bookingDetail.Promo_Code,
 				Promo_Heading: props.bookingDetail.Promo_Heading,
@@ -111,6 +115,7 @@ const ViewModal2 = props => {
 
 	//Calculate Amount
 	useEffect(() => {
+		setHasError(false)
 		if (promoCode == '' || promoCode == null) {
 			let sum = 0
 			selectedValue &&
@@ -121,6 +126,7 @@ const ViewModal2 = props => {
 				})
 			return sampleCollectionCharges(sum)
 		} else if (promoCode != '' && promocodeDetails.Offer_Percentage > 0) {
+			setPromoMsg('Promo Applied')
 			setPromoCodeStatus(true)
 			let sum = 0
 			let discount = 0
@@ -128,17 +134,17 @@ const ViewModal2 = props => {
 				selectedValue.length &&
 				selectedValue.forEach(values => {
 					values.Service_Amount ? (sum += values.Service_Amount) : (sum += values.Amount)
-					console.log(values)
-					values.Service_Discount
-						? (discount += values.Service_Discount)
-						: values.Suppress_Discount == false
-						? (discount +=
-								(values.Amount * (promocodeDetails.Offer_Percentage ? promocodeDetails.Offer_Percentage : 100)) / 100)
+					//console.log(values)
+					values.Suppress_Discount == false
+						? values.Service_Amount
+							? (discount += (Number(values.Service_Amount) * Number(promocodeDetails.Offer_Percentage)) / 100)
+							: (discount += (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100)
 						: (discount += 0)
-					console.log(discount)
+					//console.log(discount)
 					setTotalDiscount(discount)
 					settotalValues(sum)
 				})
+			//console.log(discount)
 			return sampleCollectionCharges(sum - discount)
 		}
 	}, [selectedValue, promoCode])
@@ -146,6 +152,12 @@ const ViewModal2 = props => {
 	// Test Search handle input change event
 	const handleInputChange = value => {
 		setValue(value)
+	}
+
+	//recall values
+	const recallValuesAgain = () => {
+		let newSelectedVal = selectedValue
+		setSelectedValue([...newSelectedVal])
 	}
 
 	// Test Search handle selection
@@ -156,8 +168,14 @@ const ViewModal2 = props => {
 		if (found == undefined) {
 			setSelectedValue([...selectedValue, value])
 			setSearchTestValue('')
+			if (promocodeStatus == false) {
+				setPromoCode('')
+			}
 		} else {
 			setSearchTestValue('')
+			if (promocodeStatus == false) {
+				setPromoCode('')
+			}
 		}
 	}
 
@@ -198,7 +216,7 @@ const ViewModal2 = props => {
 
 	//Remove the Coupon Code
 	const removeCoupenCode = () => {
-		alert('function')
+		setHasError(false)
 		setPromoCode('')
 		setPromoCodeDetails({
 			Availed_Times: 0,
@@ -219,22 +237,24 @@ const ViewModal2 = props => {
 		const promotionData = {
 			Labadmin_Code: props.labAdminCode,
 			Username: props.bookingDetail.Mobile_No,
-			Promo_Code: promoCode,
+			Promo_Code: promoCode.trim(),
 		}
 		props.getPromotiontApplyDetails(promotionData, result => {
 			if (result.SuccessFlag === 'true') {
-				console.log(result)
+				//console.log(result)
 				setPromoCodeStatus(result.SuccessFlag)
 				setPromoCodeDetails(result.Message[0])
 				setPromoCode(result.Message[0].Coupon_Code)
 				setPromoLoader(false)
 				setPromoMsg('Promo Applied')
+				recallValuesAgain()
 			} else if (result.SuccessFlag === 'false') {
 				removeCoupenCode()
 				setPromoCodeStatus(false)
 				setPromoLoader(false)
 				setPromoCode('')
 				setPromoMsg('Voucher Invalid!')
+				recallValuesAgain()
 			}
 		})
 	}
@@ -242,9 +262,12 @@ const ViewModal2 = props => {
 	//Update
 	const onClickSubmit = () => {
 		//this.setState({ showLoading: true })
+		//alert(promoCode,promocodeStatus)
 		if (isEmptyArray(selectedValue)) {
 			setHasError(true)
 		} else if (isEmptyString(selectedPhlebotomistList) && props.bookingDetail.Booking_Type_Code !== 'W') {
+			setHasError(true)
+		} else if (promoCode.length && promocodeStatus == false) {
 			setHasError(true)
 		} else {
 			let serArr = []
@@ -269,6 +292,23 @@ const ViewModal2 = props => {
 					Service_Amount: serviceAmount,
 				})
 			})
+
+			let arrService = []
+			console.log('')
+			selectedValue.forEach(item => {
+				arrService.push({
+					Service_Code: item.Service_Code,
+					Service_Amount: item.Amount ? item.Amount : item.Service_Amount,
+					Service_Suppress_Discount: item.Suppress_Discount,
+					Service_Discount:
+						item.Suppress_Discount === false && promocodeDetails.Offer_Percentage && item.Amount
+							? (item.Amount * promocodeDetails.Offer_Percentage) / 100
+							: item.Suppress_Discount === false && promocodeDetails.Offer_Percentage && item.Service_Amount
+							? (item.Service_Amount * promocodeDetails.Offer_Percentage) / 100
+							: 0,
+				})
+			})
+
 			const data = {
 				Labadmin_Code: props.labAdminCode,
 				Firm_No: props.bookingDetail.Firm_No,
@@ -276,13 +316,41 @@ const ViewModal2 = props => {
 				Booking_Date: props.bookingDetail.Booking_Date,
 				Booking_No: props.bookingDetail.Booking_No,
 				Collector_Code: selectedPhlebotomistList,
-				Service_Reg_Data: serArr,
+				Service_Reg_Data: arrService,
 				Promo_Code: promoCode,
 				Sample_Collect_Charge: collectionCharges.Collection_Charge,
 			}
 			props.bookingUpdate(data, result => {
 				//this.setState({ showLoading: false })
 				if (result.SuccessFlag === 'true') {
+					setBookDetail(props.bookingDetail)
+					setPhlebotomistList(props.phlebotomistList)
+					setSelectedPhlebotomistList(props.bookingDetail.Collector_Code)
+					//To have intial selected test
+					setServiceDetail(props.bookingDetail.Service_Detail)
+					setPromoCode(props.bookingDetail.Promo_Code)
+					setSelectedValue(props.bookingDetail.Service_Detail)
+					setPromoCodeDetails({})
+					setBookDetail({})
+					setPhlebotomistList([])
+					setSelectedPhlebotomistList('')
+					setBookingType('')
+					setServiceDetail([])
+					setPromoCode('')
+					setTestCollection({ value: '', label: '' })
+					setTestList(testListData)
+					setValue('')
+					setSelectedValue([])
+					settotalValues(0)
+					setCollectionCharges({})
+					setTotalDiscount(0)
+					setPromoCodeStatus(false)
+					setPromoLoader(false)
+					setHasError(false)
+					setInvoiceLoading(false)
+					setSearchTestValue('')
+					setPromoMsg('')
+					removeCoupenCode()
 					props.showNotification('Success', 'Booking updated Successfully', TOAST.TYPE_SUCCESS)
 					props.onClickClose()
 				} else {
@@ -495,11 +563,11 @@ const ViewModal2 = props => {
 												? selectedValue.map((values, key) => {
 														return (
 															<tr key={key}>
-																{console.log(promocodeStatus, values.Service_Discount)}
 																<td>{values.Service_Name}</td>
 																<td>
 																	{promocodeStatus && values.Service_Discount >= 0
-																		? values.Service_Discount
+																		? values.Suppress_Discount == false &&
+																		  (Number(values.Service_Amount) * Number(promocodeDetails.Offer_Percentage)) / 100
 																		: values.Suppress_Discount == false && promocodeStatus
 																		? (Number(values.Amount) * Number(promocodeDetails.Offer_Percentage)) / 100
 																		: ''}
@@ -644,7 +712,7 @@ const ViewModal2 = props => {
 												onInputChange={handleInputChange}
 												onChange={e => {
 													handleChange(e)
-													console.log(e.Service_Name)
+													//console.log(e.Service_Name)
 													//setSearchTestValue(e.Service_Name)
 												}}
 												isDisabled={
@@ -700,8 +768,12 @@ const ViewModal2 = props => {
 												className='form-control bg-transparent patient-details'
 												placeholder='Voucher Code'
 												name='promotion'
-												onChange={e => setPromoCode(e.target.value)}
+												onChange={e => {
+													setPromoCode(e.target.value)
+													setPromoMsg('')
+												}}
 												value={promoCode}
+												disabled={promocodeStatus}
 											/>
 											<span className='fa fa-times-circle closeIcon' onClick={() => removeCoupenCode()} />
 											<InputGroupAddon addonType='append'>
@@ -710,6 +782,13 @@ const ViewModal2 = props => {
 												</Button>
 											</InputGroupAddon>
 										</InputGroup>
+										{hasError && promoCode.length && promocodeStatus == false ? (
+											<div>
+												<small className='text-danger'>Apply or Remove Coupon Code</small>
+											</div>
+										) : (
+											''
+										)}
 									</div>
 								</div>
 							</div>
