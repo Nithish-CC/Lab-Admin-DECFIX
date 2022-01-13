@@ -186,20 +186,6 @@ const ViewModal2 = props => {
 			Start_Index: 1,
 			Page_Count: 100,
 		}
-		//  props.getTestDetails(searchData, result => {
-		// 	if (result) {
-		// 		//alert(testList)
-		// 		//let convertValue = [];
-		// 		//testList.filter(i => convertValue.push({ value: i, label: i.Service_Name }))
-		// 		//console.log(convertValue)
-		// 		setTestCollection(testList)
-		// 		console.log(testList)
-		// 	}
-
-		// })
-		//  props.getTestDetails(searchData, (result) =>{
-		// 	return testList
-		// })
 		return searchTestApiCall.post('/Fetch_Services_For_Order', searchData).then(result => {
 			const res = result.data.Message[0].Service_List
 			//console.log(res)
@@ -563,7 +549,10 @@ const ViewModal2 = props => {
 												? selectedValue.map((values, key) => {
 														return (
 															<tr key={key}>
-																<td>{values.Service_Name}</td>
+																<td>
+																	{values.Suppress_Discount == true ? <span style={{ color: 'red' }}>*</span> : ''}
+																	{values.Service_Name}
+																</td>
 																<td>
 																	{promocodeStatus && values.Service_Discount >= 0
 																		? values.Suppress_Discount == false &&
@@ -606,6 +595,18 @@ const ViewModal2 = props => {
 											</tr>
 										</tbody>
 									</table>
+								</div>
+								<div className=''>
+									<div className='d-flex list-inline mt-4'>
+										<label className='col-form-label flex-grow-1'>
+											<h6>
+												Note : <span style={{ color: 'red' }}>* - Indicates Non Discounted Test</span>
+											</h6>
+										</label>
+										<div className='justify-content-end'>
+											<p className='mb-0 text-color text-success'></p>
+										</div>
+									</div>
 								</div>
 							</div>
 							<div className='col-sm-6'>
@@ -669,42 +670,12 @@ const ViewModal2 = props => {
 
 									<div className='input-group mt-4'>
 										<h6 className='mt-4'>Search Test</h6>
-										{/* <AsyncSelect
-										className='react-select'
-										inputValue={newValue}
-										cacheOptions
-										value={newValue}
-										placeholder='Search Test'
-										loadOptions={loadOptions}
-										defaultOptions
-										onInputChange={getTest}
-										onChange={onChange}
-										isDisabled={
-											!this.props.bookingDetail.Is_Editable_Booking ||
-											this.props.bookingDetail.Is_Editable_Booking === 'false' ||
-											this.props.bookingDetail.Is_Editable_Booking === false
-										}
-									/> */}
+
 										<FormGroup style={{ width: '100%' }}>
-											{/* <Select
-											className='basic-single'
-											classNamePrefix='select'
-											//defaultValue={options[0]}
-											isLoading={false}
-											isClearable={true}
-											isSearchable={true}
-											onInputChange={(e)=>console.log(e.target.value)}
-											//onChange={(e) => console.log(e.target.value)}
-											name='color'
-											options={testCollection}
-										/> */}
 											<AsyncSelect
 												cacheOptions
-												//defaultOptions={searchTestvalue}
-												//inputValue={selectedValue}
 												placeholder='Search Test'
 												value=''
-												//isClearable={true}
 												isSearchable={true}
 												getOptionLabel={e => e.Service_Name}
 												getOptionValue={e => e.Service_Code}
@@ -712,8 +683,6 @@ const ViewModal2 = props => {
 												onInputChange={handleInputChange}
 												onChange={e => {
 													handleChange(e)
-													//console.log(e.Service_Name)
-													//setSearchTestValue(e.Service_Name)
 												}}
 												isDisabled={
 													!props.bookingDetail.Is_Editable_Booking ||
@@ -722,10 +691,7 @@ const ViewModal2 = props => {
 												}
 											/>
 										</FormGroup>
-										{/* 
-									<div>
-										<small className='text-danger'>Select an Service to Continue</small>
-									</div> */}
+
 										{selectedValue && selectedValue.length
 											? selectedValue.map((item, i) => {
 													return (

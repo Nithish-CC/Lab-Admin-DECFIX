@@ -290,7 +290,7 @@ class RegisterPatient extends Component {
 					this.props.showNotification('Success', 'Patient added successfully', TOAST.TYPE_SUCCESS)
 					setTimeout(() => {
 						window.location.reload()
-					  }, 5000);
+					}, 5000)
 				} else {
 					this.props.showNotification('Error', result.Message[0].Message, TOAST.TYPE_ERROR)
 				}

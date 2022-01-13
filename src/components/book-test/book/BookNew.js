@@ -1081,8 +1081,12 @@ const BookNew = props => {
 																	return (
 																		<div className='col-sm-12' key={i}>
 																			<div className='d-flex list-inline'>
-																				{values.Suppress_Discount==true ?<span style={{color:'red'}}>*</span>:'' }
-																				
+																				{values.Suppress_Discount == true ? (
+																					<span style={{ color: 'red' }}>*</span>
+																				) : (
+																					''
+																				)}
+
 																				<label className='flex-grow-1 text-color'>{values.Service_Name}</label>
 																				<div className='justify-content-end'>
 																					<p className='mb-0 text-color'>{values.Amount}</p>
@@ -1141,12 +1145,14 @@ const BookNew = props => {
 															</div>
 														</div>
 														<div className='col-sm-12'>
-															<div className='d-flex list-inline mt-4'>
-																<label className='col-form-label flex-grow-1'><h6>NOTE : <span style={{color:'red'}}>* - Indicates Non Discounted Test</span></h6></label>
+															<div className='d-flex list-inline mt-5'>
+																<label className='col-form-label flex-grow-1'>
+																	<h6>
+																		Note : <span style={{ color: 'red' }}>* - Indicates Non Discounted Test</span>
+																	</h6>
+																</label>
 																<div className='justify-content-end'>
-																	<p className='mb-0 text-color text-success'>
-																		
-																	</p>
+																	<p className='mb-0 text-color text-success'></p>
 																</div>
 															</div>
 														</div>
@@ -1247,7 +1253,6 @@ const BookNew = props => {
 											</button>
 										</div>
 									) : null} */}
-
 
 									{!showConfirmation ? (
 										<div className='d-flex justify-content-end mr-4 my-5'>

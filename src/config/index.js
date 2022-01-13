@@ -5,7 +5,10 @@
  * @author Sasidharan // on 08/10/2020
  * @copyright © 2020 LIS. All rights reserved.
  *************************************************/
-let REACT_APP_BACKEND_URL = 'http://110.44.126.145:9090/SamyakApp_Stage/API/Labadmin'
+
+ 
+
+let REACT_APP_BACKEND_URL = 'http://product.sukraa.in/MA_API/Api/Labadmin'
 // Public IP :  http://110.44.126.145:3051/SamyakApp/API/Labadmin
 // Local IP  : http://192.168.10.143/SamyakApp/API/Labadmin
 
@@ -14,8 +17,8 @@ let oAuthBaseUrl = `${REACT_APP_BACKEND_URL}/Ladadmin_Login`
 let isDevelopment = true
 
 if (window.location.hostname === 'localhost') {
-	apiBaseUrl = `http://110.44.126.145:9090/SamyakApp_Stage/API/Labadmin`
-	oAuthBaseUrl = 'http://110.44.126.145:9090/SamyakApp_Stage/API/Labadmin/Ladadmin_Login'
+	apiBaseUrl = `http://product.sukraa.in/MA_API/Api/Labadmin`
+	oAuthBaseUrl = 'http://product.sukraa.in/MA_API/Api/Labadmin/Ladadmin_Login'
 	// apiBaseUrl = `http://110.44.126.145/SamyakApp/API/Labadmin`
 	// oAuthBaseUrl = 'http://110.44.126.145/SamyakApp/API/Labadmin/Ladadmin_Login'
 	isDevelopment = true
@@ -24,8 +27,10 @@ if (window.location.hostname === 'localhost') {
 	oAuthBaseUrl = `${REACT_APP_BACKEND_URL}/Ladadmin_Login`
 	isDevelopment = false
 } else if (window.location.hostname === '34.209.211.19') {
-	apiBaseUrl = `http://183.82.246.18:9080/SukraaApp/API/Labadmin`
-	oAuthBaseUrl = 'http://183.82.246.18:9080/SukraaApp/API/Labadmin/Ladadmin_Login'
+	apiBaseUrl = `http://product.sukraa.in/MA_API/Api/Labadmin`
+	oAuthBaseUrl = 'http://product.sukraa.in/MA_API/Api/Labadmin/Ladadmin_Login'
+	//apiBaseUrl = `http://183.82.246.18:9080/SukraaApp/API/Labadmin`
+	//oAuthBaseUrl = 'http://183.82.246.18:9080/SukraaApp/API/Labadmin/Ladadmin_Login'
 	isDevelopment = false
 } else {
 	apiBaseUrl = `${REACT_APP_BACKEND_URL}`

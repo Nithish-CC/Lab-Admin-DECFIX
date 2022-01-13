@@ -19,7 +19,7 @@ const Wrapper = ({ children, getAppSettings }) => {
 		<div className='wrapper'>
 			<div className='d-flex flex-column align-items-center h-100 login justify-content-center'>
 				<div className='align-self-center mt-3 mobile-width p-4 curved w-25 bg-white'>
-					<img src={clientLogo} alt='' className='mx-auto img-fluid w-50 d-table mt-4 mb-3' />
+					<img src={clientLogo}	 alt='' className='mx-auto img-fluid w-50 d-table mt-4 mb-3' />
 					<hr className='mt-4 mb-4' />
 					{children}
 				</div>
