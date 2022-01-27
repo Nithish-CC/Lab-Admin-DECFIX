@@ -301,13 +301,18 @@ class RegisterPatient extends Component {
 	handleSendOtp = () => {
 		const data = {
 			Labadmin_Code: getLabadminCode(),
-			UserName: store.get('userSession').Message[0].Mobile_No,
+			//UserName: store.get('userSession').Message[0].Mobile_No,
+			UserName: this.state.mobileNo,
 			MobileNo: this.state.mobileNo,
 			PtCode: this.state.linkCode.trim(),
 		}
 		this.props.getPatientOtp(data, result => {
-			if (result) {
+			console.log(result)
+			console.log(data)
+			if (result.SuccessFlag == "true") {
 				this.props.showNotification('Success', 'OTP sent successfully', TOAST.TYPE_SUCCESS)
+			} else {
+				this.props.showNotification('Error',result.Message, TOAST.TYPE_ERROR)
 			}
 		})
 	}
@@ -315,7 +320,7 @@ class RegisterPatient extends Component {
 	handleVerifyOtp = () => {
 		const data = {
 			Labadmin_Code: getLabadminCode(),
-			UserName: store.get('userSession').Message[0].Mobile_No,
+			UserName: this.state.mobileNo,
 			PtCode: this.state.linkCode.trim(),
 			OtpCode: store.get('otp') && store.get('otp').Message[0].OtpCode,
 		}

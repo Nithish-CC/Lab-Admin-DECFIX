@@ -518,11 +518,11 @@ const BookNew = props => {
 			arrService.push({
 				Service_Code: item.Service_Code,
 				Service_Amount: item.Amount,
-				Service_Suppress_Discount: item.Suppress_Discount,
+				Suppress_Discount: item.Suppress_Discount,
 				Service_Discount:
 					item.Suppress_Discount === false && promocodeDetails.Offer_Percentage
 						? (item.Amount * promocodeDetails.Offer_Percentage) / 100
-						: promocodeDetails.Discount_In_Percent
+						: promocodeDetails.Discount_In_Percent && item.Suppress_Discount === false
 						? (item.Amount * promocodeDetails.Discount_In_Percent) / 100
 						: 0,
 			})

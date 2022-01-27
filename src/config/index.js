@@ -6,10 +6,10 @@
  * @copyright © 2020 LIS. All rights reserved.
  *************************************************/
 
- 
-
 let REACT_APP_BACKEND_URL = 'http://product.sukraa.in/MA_API/Api/Labadmin'
-// Public IP :  http://110.44.126.145:3051/SamyakApp/API/Labadmin
+//'http://product.sukraa.in/MA_API/Api/Labadmin'
+//http://110.44.126.145:9090/SamyakApp_stage/API/Labadmin/
+// Public IP :  http://110.44.126.145/SamyakApp/API/Labadmin
 // Local IP  : http://192.168.10.143/SamyakApp/API/Labadmin
 
 let apiBaseUrl = REACT_APP_BACKEND_URL
@@ -19,6 +19,8 @@ let isDevelopment = true
 if (window.location.hostname === 'localhost') {
 	apiBaseUrl = `http://product.sukraa.in/MA_API/Api/Labadmin`
 	oAuthBaseUrl = 'http://product.sukraa.in/MA_API/Api/Labadmin/Ladadmin_Login'
+	//apiBaseUrl = 'http://110.44.126.145:9090/SamyakApp_stage/API/Labadmin'
+	//oAuthBaseUrl = 'http://110.44.126.145:9090/SamyakApp_stage/API/Labadmin/Ladadmin_Login'
 	// apiBaseUrl = `http://110.44.126.145/SamyakApp/API/Labadmin`
 	// oAuthBaseUrl = 'http://110.44.126.145/SamyakApp/API/Labadmin/Ladadmin_Login'
 	isDevelopment = true

@@ -81,7 +81,7 @@ export const getPatientOtp = (params, callBack) => {
 			console.log(response)
 			if (response.Code === 200) {
 				console.log('hello otp')
-				callBack(true, response.Message[0])
+				callBack(response)
 				Store.set('otp', response)
 				dispatch({
 					type: ACTION_TYPES.OTP_SEND_PATIENT,
@@ -91,7 +91,7 @@ export const getPatientOtp = (params, callBack) => {
 				console.log('wrong')
 			}
 		} catch (error) {
-			callBack(false)
+			callBack(error.Message[0])
 		}
 	}
 }
